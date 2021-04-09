@@ -13,6 +13,7 @@ body {
 input,
 textarea,
 select,
+div,
 button {
   font-family: inherit;
   line-height: inherit;

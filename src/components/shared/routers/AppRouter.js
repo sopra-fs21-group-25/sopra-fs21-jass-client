@@ -4,6 +4,9 @@ import { GameGuard } from "../routeProtectors/GameGuard";
 import GameRouter from "./GameRouter";
 import { LoginGuard } from "../routeProtectors/LoginGuard";
 import Login from "../../login/Login";
+import { MenuGuard } from '../routeProtectors/MenuGuard';
+import Menu from '../../application/Menu';
+import CreationPage from "../../application/CreationPage";
 
 /**
  * Main router of your application.
@@ -21,11 +24,19 @@ class AppRouter extends React.Component {
         <Switch>
           <div>
             <Route
-              path="/game"
+              path="/menu"
               render={() => (
-                <GameGuard>
-                  <GameRouter base={"/game"} />
-                </GameGuard>
+                <Menu />
+                /*<MenuGuard>
+                  <Menu />
+                </MenuGuard>*/
+              )}
+            />
+            <Route
+              path="/create"
+              exact
+              render={() => (
+                  <CreationPage />
               )}
             />
             <Route
