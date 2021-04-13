@@ -7,8 +7,59 @@ import { api, handleError } from '../../helpers/api';
 import { Spinner } from '../../views/design/Spinner';
 import { Button } from '../../views/design/Button';
 import {withRouter} from 'react-router-dom';
+import {Friend} from "../shared/models/Friend";
 
+const Container = styled('div')({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'flex-start',
+  paddingTop: '2%',
+  width: props => props.width || '100%',
+  height: props => props.height || '100%',
+  borderTop: props => props.borderTop || null,
+  borderBottom: props => props.borderBottom || null
+});
 
+const FormContainer = styled.div`
+  margin-top: 2em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 300px;
+  justify-content: center;
+`;
+
+const Form = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  width: 100%;
+  height: 375px;
+  font-size: 16px;
+  font-weight: 300;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+`;
+
+const InputField = styled.input`
+  &::placeholder {
+    color: rgba(154, 152, 153, 1.0);
+  }
+  height: 35px;
+  padding-left: 15px;
+  margin-left: -4px;
+  border: none;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  background: rgba(255, 255, 255, 0.8);
+  color: black;
+`;
+
+const ButtonContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+`;
 
 const FriendsContainer = styled('div')({
   float: 'right',
@@ -17,7 +68,7 @@ const FriendsContainer = styled('div')({
   paddingTop: '0'
 });
 
-const CreationButtonContainer = styled('div')({
+const GametableButtonContainer = styled('div')({
   display: 'flex',
   flexDirection: 'column',
   margin: '1%',
@@ -35,7 +86,7 @@ class Menu extends React.Component {
       users: null,
       userId: null,
       userType: null,
-      friends: null,
+      friends: [],
       friendRequests: null,
       gameInvitations: null
     }
@@ -86,20 +137,39 @@ class Menu extends React.Component {
 
   render() {
     return (
-      <BackgroundContainer>
+      <BackgroundContainer style={{flexDirection: 'row'}}>
+        <Container width={'35%'}>
+          <GametableButtonContainer>
+            <LargeButtonContainer>
+              <Button onClick={() => this.props.history.push('/create')}>
+                Create Game Table
+              </Button>
+            </LargeButtonContainer>
+            <LargeButtonContainer>
+              <Button>
+                Join Game Table
+              </Button>
+            </LargeButtonContainer>
+          </GametableButtonContainer>
+        </Container>
+        <Container width={'25%'}>
+          <Form>
+            <InputField
+              placeholder={'Search users...'}
+            />
+          </Form>
+        </Container>
+        <Container width={'40%'}>
+          <FriendsContainer>
+            {this.state.friends?.map(friend =>
+              <Friend
+                key={friend.username}
+                user={friend}
+              />
+            )}
+          </FriendsContainer>
+        </Container>
 
-        <CreationButtonContainer>
-          <LargeButtonContainer>
-            <Button onClick={() => this.props.history.push('/create')}>
-              Create Game Table
-            </Button>
-          </LargeButtonContainer>
-          <LargeButtonContainer>
-            <Button>
-              Join Game Table
-            </Button>
-          </LargeButtonContainer>
-        </CreationButtonContainer>
 
       </BackgroundContainer>
     );

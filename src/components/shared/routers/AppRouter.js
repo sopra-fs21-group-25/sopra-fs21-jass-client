@@ -22,7 +22,6 @@ class AppRouter extends React.Component {
     return (
       <BrowserRouter>
         <Switch>
-          <div>
             <Route
               path="/menu"
               render={() => (
@@ -49,7 +48,6 @@ class AppRouter extends React.Component {
               )}
             />
             <Route path="/" exact render={() => <Redirect to={"/game"} />} />
-          </div>
         </Switch>
       </BrowserRouter>
     );
