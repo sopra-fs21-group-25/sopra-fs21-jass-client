@@ -5,6 +5,8 @@ import { api, handleError } from '../../helpers/api';
 import User from '../shared/models/User';
 import { withRouter } from 'react-router-dom';
 import { Button } from '../../views/design/Button';
+import { RainbowButtonutton } from '../../views/design/Button';
+import {BackgroundContainer, BackgroundContainerLogin, LargeButtonContainer} from "../../helpers/layout";
 
 const FormContainer = styled.div`
   margin-top: 2em;
@@ -15,18 +17,36 @@ const FormContainer = styled.div`
   justify-content: center;
 `;
 
+const Container = styled('div')({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'flex-start',
+  paddingTop: '2%',
+  width: props => props.width || '100%',
+  height: props => props.height || '100%',
+  borderTop: props => props.borderTop || null,
+  borderBottom: props => props.borderBottom || null
+});
+
+const Title = styled.div`
+  font-size: 10em;
+  vertical-align: top;
+  color: goldenrod;
+  flex-direction: row;
+  font-family: Bungee Inline;
+  justify-content: center;
+`;
+
 const Form = styled.div`
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   justify-content: center;
-  width: 60%;
+  width: 100%;
   height: 375px;
   font-size: 16px;
   font-weight: 300;
-  padding-left: 37px;
-  padding-right: 37px;
-  border-radius: 5px;
-  background: linear-gradient(rgb(27, 124, 186), rgb(2, 46, 101));
+  vertical-align: top;
   transition: opacity 0.5s ease, transform 0.5s ease;
 `;
 
@@ -42,7 +62,24 @@ const InputField = styled.input`
   margin-bottom: 20px;
   background: rgba(255, 255, 255, 0.2);
   color: white;
+  vertical-align: top;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
 `;
+
+
+const LoginButtonContainer = styled('div')({
+  display: 'flex',
+  flexDirection: 'column',
+  margin: '1%',
+  maxHeight: '100px',
+  width: '30%',
+  minWidth: '240px',
+  alignItems: 'center'
+});
+
+
 
 const Label = styled.label`
   color: white;
@@ -50,11 +87,25 @@ const Label = styled.label`
   text-transform: uppercase;
 `;
 
-const ButtonContainer = styled.div`
+const TitleBox = styled.div`
   display: flex;
   justify-content: center;
   margin-top: 20px;
+  flex-direction: column;
+  height: 700px;
+  
 `;
+
+const ButtonsBox = styled.div`
+  display: flex;
+  justify-content: bottom;
+  margin-top: 100px;
+  flex-direction: column;
+  height: 300px;
+  width: 29em;
+
+`;
+
 
 /**
  * Classes in React allow you to have an internal state within the class and to have the React life-cycle for your component.
@@ -99,11 +150,32 @@ class Login extends React.Component {
       localStorage.setItem('token', user.token);
 
       // Login successfully worked --> navigate to the route /game in the GameRouter
-      this.props.history.push(`/game`);
+      this.props.history.push(`/menu`);
     } catch (error) {
       alert(`Something went wrong during the login: \n${handleError(error)}`);
     }
   }
+  /**
+   * redirect to the registration page
+   */
+  register() {
+    try {
+      this.props.history.push(`/register`);
+    } catch (error) {
+      alert(`Something went wrong during the login: \n${handleError(error)}`);
+    }
+  }
+
+
+  defaultRegister() {
+    try {
+      this.props.history.push(`/menu`);
+    } catch (error) {
+      alert(`Something went wrong during the login: \n${handleError(error)}`);
+    }
+  }
+
+
 
   /**
    *  Every time the user enters something in the input field, the state gets updated.
@@ -127,9 +199,10 @@ class Login extends React.Component {
 
   render() {
     return (
-      <BaseContainer>
-        <FormContainer>
-          <Form>
+      <BackgroundContainerLogin>
+        <TitleBox>
+        <Title>Sali im Stübli</Title>
+          <ButtonsBox>
             <Label>Username</Label>
             <InputField
               placeholder="Enter here.."
@@ -137,14 +210,13 @@ class Login extends React.Component {
                 this.handleInputChange('username', e.target.value);
               }}
             />
-            <Label>Name</Label>
+            <Label>Password</Label>
             <InputField
               placeholder="Enter here.."
               onChange={e => {
                 this.handleInputChange('name', e.target.value);
               }}
             />
-            <ButtonContainer>
               <Button
                 disabled={!this.state.username || !this.state.name}
                 width="50%"
@@ -154,10 +226,31 @@ class Login extends React.Component {
               >
                 Login
               </Button>
-            </ButtonContainer>
-          </Form>
-        </FormContainer>
-      </BaseContainer>
+
+          <Label>Register as a new User</Label>
+          <Button
+              width="50%"
+              onClick={() => {
+                this.register();
+              }}
+          >
+            Register
+          </Button>
+
+          <Label>Enter as a Guest</Label>
+          <Button
+              width="50%"
+              onClick={() => {
+                this.defaultRegister();
+              }}
+          >
+            Enter
+          </Button>
+          </ButtonsBox>
+
+
+  </TitleBox>
+      </BackgroundContainerLogin>
     );
   }
 }

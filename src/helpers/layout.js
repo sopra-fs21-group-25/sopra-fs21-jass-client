@@ -1,5 +1,7 @@
 import styled from "styled-components";
 import background from '../views/images/interfaceImages/woodWall.png';
+import restaurant from '../views/images/interfaceImages/restaurant2.jpg';
+import register from '../views/images/interfaceImages/register.jpg';
 
 export const DESKTOP_WIDTH = 1160;
 export const SMALL_LAPTOPS_WIDTH = 970;
@@ -22,6 +24,28 @@ export const BackgroundContainer = styled('div')({
   width: '100%',
   height: '100%',
   backgroundImage: `url(${background})`,
+  backgroundSize: 'cover'
+});
+
+export const BackgroundContainerLogin = styled('div')({
+  display: 'flex',
+  alignItems: 'top',
+  justifyContent: 'center',
+  position: 'fixed',
+  width: '100%',
+  height: '100%',
+  backgroundImage: `url(${restaurant})`,
+  backgroundSize: 'cover'
+});
+
+export const BackgroundContainerRegister = styled('div')({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  position: 'fixed',
+  width: '100%',
+  height: '100%',
+  backgroundImage: `url(${register})`,
   backgroundSize: 'cover'
 });
 
