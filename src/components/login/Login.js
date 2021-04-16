@@ -1,33 +1,10 @@
 import React from 'react';
 import styled from 'styled-components';
-import { BaseContainer } from '../../helpers/layout';
 import { api, handleError } from '../../helpers/api';
 import User from '../shared/models/User';
 import { withRouter } from 'react-router-dom';
 import { Button } from '../../views/design/Button';
-import { RainbowButtonutton } from '../../views/design/Button';
-import {BackgroundContainer, BackgroundContainerLogin, LargeButtonContainer} from "../../helpers/layout";
-
-const FormContainer = styled.div`
-  margin-top: 2em;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-height: 300px;
-  justify-content: center;
-`;
-
-const Container = styled('div')({
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  justifyContent: 'flex-start',
-  paddingTop: '2%',
-  width: props => props.width || '100%',
-  height: props => props.height || '100%',
-  borderTop: props => props.borderTop || null,
-  borderBottom: props => props.borderBottom || null
-});
+import { BackgroundContainerLogin} from "../../helpers/layout";
 
 const Title = styled.div`
   font-size: 10em;
@@ -38,21 +15,9 @@ const Title = styled.div`
   justify-content: center;
 `;
 
-const Form = styled.div`
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  width: 100%;
-  height: 375px;
-  font-size: 16px;
-  font-weight: 300;
-  vertical-align: top;
-  transition: opacity 0.5s ease, transform 0.5s ease;
-`;
-
 const InputField = styled.input`
   &::placeholder {
-    color: rgba(255, 255, 255, 1.0);
+    color: black;
   }
   height: 35px;
   padding-left: 15px;
@@ -60,52 +25,57 @@ const InputField = styled.input`
   border: none;
   border-radius: 20px;
   margin-bottom: 20px;
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
+  background: rgba(255, 255, 255, 0.6);
+  color: black;
   vertical-align: top;
   display: flex;
   flex-direction: row;
   justify-content: center;
+    padding: 6px;
+  font-weight: 700;
+  font-size: 15px;
+  width: 100%;
+  height: ${props => props.height || null};
+  border-radius: 5px;
 `;
-
-
-const LoginButtonContainer = styled('div')({
-  display: 'flex',
-  flexDirection: 'column',
-  margin: '1%',
-  maxHeight: '100px',
-  width: '30%',
-  minWidth: '240px',
-  alignItems: 'center'
-});
-
-
 
 const Label = styled.label`
   color: white;
   margin-bottom: 10px;
   text-transform: uppercase;
+  font-size: 1.4em;
 `;
 
 const TitleBox = styled.div`
-  display: flex;
-  justify-content: center;
-  margin-top: 20px;
-  flex-direction: column;
-  height: 700px;
-  
+  grid-column: 1 / 4;
+  grid-row: 1 ;  
+  align-self: center;
 `;
 
-const ButtonsBox = styled.div`
-  display: flex;
-  justify-content: bottom;
-  margin-top: 100px;
-  flex-direction: column;
-  height: 300px;
-  width: 29em;
 
+const RegisterBox = styled.div`
+  grid-column: 1;
+  grid-row: 2 ; 
+  align-self: center; 
 `;
 
+const UserLoginBox = styled.div`
+  grid-column: 2;
+  grid-row: 2 ;
+`;
+
+const GuestBox = styled.div`
+  grid-column: 3;
+  grid-row: 2 ; 
+  align-self: center;
+`;
+
+const LoginWrapper = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap: 100px;
+  grid-auto-rows: minmax(100px, auto)
+`;
 
 /**
  * Classes in React allow you to have an internal state within the class and to have the React life-cycle for your component.
@@ -200,9 +170,23 @@ class Login extends React.Component {
   render() {
     return (
       <BackgroundContainerLogin>
+        <LoginWrapper>
         <TitleBox>
-        <Title>Sali im Stübli</Title>
-          <ButtonsBox>
+          <Title>Sali im Stübli</Title>
+        </TitleBox>
+
+            <RegisterBox>
+              <Label>Register as a new User</Label>
+              <Button
+                  width="50%"
+                  onClick={() => {
+                    this.register();
+                  }}
+              >
+                Register
+              </Button>
+            </RegisterBox>
+          <UserLoginBox>
             <Label>Username</Label>
             <InputField
               placeholder="Enter here.."
@@ -226,30 +210,20 @@ class Login extends React.Component {
               >
                 Login
               </Button>
-
-          <Label>Register as a new User</Label>
-          <Button
-              width="50%"
-              onClick={() => {
-                this.register();
-              }}
-          >
-            Register
-          </Button>
-
-          <Label>Enter as a Guest</Label>
-          <Button
-              width="50%"
-              onClick={() => {
+          </UserLoginBox>
+          <GuestBox>
+            <Label>Enter as a Guest</Label>
+            <Button
+                width="50%"
+                onClick={() => {
                 this.defaultRegister();
               }}
-          >
-            Enter
-          </Button>
-          </ButtonsBox>
+           >
+             Enter
+            </Button>
+          </GuestBox>
 
-
-  </TitleBox>
+        </LoginWrapper>
       </BackgroundContainerLogin>
     );
   }

@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import background from '../views/images/interfaceImages/woodWall.png';
-import restaurant from '../views/images/interfaceImages/restaurant2.jpg';
-import register from '../views/images/interfaceImages/register.jpg';
+import restaurant from '../views/images/interfaceImages/resti.jpg';
+import register from '../views/images/interfaceImages/register2.png';
 
 export const DESKTOP_WIDTH = 1160;
 export const SMALL_LAPTOPS_WIDTH = 970;

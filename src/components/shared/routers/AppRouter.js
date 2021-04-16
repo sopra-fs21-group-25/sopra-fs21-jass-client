@@ -7,6 +7,7 @@ import Login from "../../login/Login";
 import { MenuGuard } from '../routeProtectors/MenuGuard';
 import Menu from '../../application/Menu';
 import CreationPage from "../../application/CreationPage";
+import Register from "../../register/Register";
 
 /**
  * Main router of your application.
@@ -48,6 +49,13 @@ class AppRouter extends React.Component {
                 //   <Login />
                 // </LoginGuard>
               )}
+            />
+            <Route
+                path="/register"
+                exact
+                render={() => (
+                    <Register />
+                )}
             />
 
         </Switch>
