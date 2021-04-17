@@ -7,12 +7,13 @@ import { Button } from '../../views/design/Button';
 import { BackgroundContainerLogin} from "../../helpers/layout";
 
 const Title = styled.div`
-  font-size: 10em;
+  font-size: 8em;
   vertical-align: top;
   color: goldenrod;
   flex-direction: row;
   font-family: Bungee Inline;
   justify-content: center;
+  text-align: center;
 `;
 
 const InputField = styled.input`
@@ -43,7 +44,6 @@ const Label = styled.label`
   color: white;
   margin-bottom: 10px;
   text-transform: uppercase;
-  font-size: 1.4em;
 `;
 
 const TitleBox = styled.div`
@@ -96,8 +96,8 @@ class Login extends React.Component {
   constructor() {
     super();
     this.state = {
-      name: null,
-      username: null
+      username: null,
+      password: null
     };
   }
   /**
@@ -109,9 +109,9 @@ class Login extends React.Component {
     try {
       const requestBody = JSON.stringify({
         username: this.state.username,
-        name: this.state.name
+        password: this.state.password
       });
-      const response = await api.post('/users', requestBody);
+      const response = await api.post('/login', requestBody);
 
       // Get the returned user and update a new object.
       const user = new User(response.data);
@@ -197,12 +197,14 @@ class Login extends React.Component {
             <Label>Password</Label>
             <InputField
               placeholder="Enter here.."
+              required="true"
+              type="password"
               onChange={e => {
-                this.handleInputChange('name', e.target.value);
+                this.handleInputChange('password', e.target.value);
               }}
             />
               <Button
-                disabled={!this.state.username || !this.state.name}
+                disabled={!this.state.username || !this.state.password}
                 width="50%"
                 onClick={() => {
                   this.login();

@@ -2,6 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { api, handleError } from '../../helpers/api';
 import User from '../shared/models/User';
+import {UserType} from '../shared/models/UserType';
 import { withRouter } from 'react-router-dom';
 import { Button } from '../../views/design/Button';
 import { BackgroundContainerRegister} from "../../helpers/layout";
@@ -41,7 +42,6 @@ const InputField = styled.input`
 
 const Label = styled.label`
   color: white;
-  font-size: 1.4em;
   margin-bottom: 10px;
   text-transform: uppercase;
 `;
@@ -81,7 +81,8 @@ class Register extends React.Component {
         super(props);
         this.state = {
             username: null,
-            password: null
+            password: null,
+            userType: UserType.REGISTERED
         };
     }
     /**
@@ -93,13 +94,15 @@ class Register extends React.Component {
         try {
             const requestBody = JSON.stringify({
                 username: this.state.username,
-                password: this.state.password
+                password: this.state.password,
+                userType: this.state.userType
             });
             const response = await api.post('/users', requestBody);
 
             if (response.status === 201) {
                 // Get the returned user and update a new object.
                 const user = new User(response.data);
+                console.log(user)
 
                 // Store the token into the local storage.
                 localStorage.setItem('token', user.token);

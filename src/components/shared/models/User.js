@@ -11,6 +11,7 @@ class User {
     this.friendRequests = null;
     this.gameInvitations = null;
     this.status = null;
+    this.userType = null;
     Object.assign(this, data);
   }
 }
