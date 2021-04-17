@@ -7,6 +7,9 @@ class User {
     this.name = null;
     this.username = null;
     this.token = null;
+    this.friends = null;
+    this.friendRequests = null;
+    this.gameInvitations = null;
     this.status = null;
     Object.assign(this, data);
   }
