@@ -7,7 +7,9 @@ import Login from "../../login/Login";
 import { MenuGuard } from '../routeProtectors/MenuGuard';
 import Menu from '../../application/Menu';
 import CreationPage from "../../application/CreationPage";
+import LobbyPage from "../../application/LobbyPage";
 import Register from "../../register/Register";
+import JoinPage from "../../application/JoinPage";
 
 /**
  * Main router of your application.
@@ -27,10 +29,9 @@ class AppRouter extends React.Component {
             <Route
               path="/menu"
               render={() => (
-                <Menu />
-                /*<MenuGuard>
+                <MenuGuard>
                   <Menu />
-                </MenuGuard>*/
+                </MenuGuard>
               )}
             />
             <Route
@@ -38,6 +39,20 @@ class AppRouter extends React.Component {
               exact
               render={() => (
                   <CreationPage />
+              )}
+            />
+            <Route
+              path="/join"
+              exact
+              render={() => (
+                  <JoinPage />
+              )}
+            />
+            <Route
+              path="/lobby/:id"
+              exact
+              render={() => (
+                  <LobbyPage />
               )}
             />
             <Route
@@ -57,7 +72,6 @@ class AppRouter extends React.Component {
                     <Register />
                 )}
             />
-
         </Switch>
       </BrowserRouter>
     );

@@ -11,7 +11,8 @@ import obenabe from "../../../views/images/icons/obenabe.png";
 import slalom from "../../../views/images/icons/slalom.png";
 import gusti from "../../../views/images/icons/gusti.png";
 import mary from "../../../views/images/icons/mary.png";
-import {withRouter} from "react-router-dom";
+import {Redirect, withRouter} from "react-router-dom";
+import {api} from "../../../helpers/api";
 
 /**
  * Different style objects
@@ -61,6 +62,26 @@ const multiplicators = {
 function updateMultiplicators(key, newVal) {
   multiplicators[key] = newVal;
 };
+
+
+// Helper function to convert a card to the correct Enum representation in the backend
+function convertCardToBackendRepresentation({suit, rank}) {
+  let newSuit = suit.toUpperCase();
+  let newRank;
+  switch(rank) {
+    case '6': newRank = 'SIX'; break;
+    case '7': newRank = 'SEVEN'; break;
+    case '8': newRank = 'EIGHT'; break;
+    case '9': newRank = 'NINE'; break;
+    case 'Banner': newRank = 'TEN'; break;
+    case 'Under': newRank = 'UNDER'; break;
+    case 'Ober': newRank = 'OBER'; break;
+    case 'King': newRank = 'KING'; break;
+    case 'Ace': newRank = 'ACE'; break;
+  }
+  return {suit: newSuit, rank: newRank}
+}
+
 
 /**
  * The following are the different arrays for the Select forms
@@ -181,6 +202,34 @@ class SchieberCreator extends React.Component {
 
   async submit() {
     try {
+      const usersResponse = await api.get('/users');
+      const myUsername = usersResponse.data.filter(user => {
+        return user.token == localStorage.getItem('token');
+      })[0].username;
+
+      const packedIngameModes = this.state.ingameModes.map(mode => {
+        return {ingameMode: mode.value.toUpperCase(), multiplicator: this.state.ingameModesMultiplicators[mode.value]};
+      });
+
+      const requestBody = JSON.stringify({
+        mode: 'SCHIEBER',
+        lobbyType: this.state.lobbyType,
+        ingameModes: packedIngameModes,
+        startingCard: convertCardToBackendRepresentation(this.state.startingCard),
+        pointsToWin: this.state.pointsToWin,
+        weis: this.state.weis,
+        crossWeis: this.state.crossWeis,
+        weisAsk: this.state.weisAsk,
+        creatorUsername: myUsername
+      });
+
+      const lobbyResponse = await api.post('/lobbies', requestBody);
+      console.log(lobbyResponse.data);
+
+      this.props.history.push({
+        pathname: `/lobby/${lobbyResponse.data.id}`,
+        state: {...lobbyResponse.data}
+      });
 
     } catch(error) {
       alert('An error has occured on game creation');

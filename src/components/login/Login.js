@@ -189,6 +189,7 @@ class Login extends React.Component {
             <Label>Username</Label>
             <InputField
               placeholder="Enter here.."
+              required
               onChange={e => {
                 this.handleInputChange('username', e.target.value);
               }}
@@ -196,11 +197,12 @@ class Login extends React.Component {
             <Label>Password</Label>
             <InputField
               placeholder="Enter here.."
-              required="true"
+              required
               type="password"
               onChange={e => {
                 this.handleInputChange('password', e.target.value);
               }}
+              onKeyPress={e => e.key === 'Enter' && this.login()}
             />
             <Button
               disabled={!this.state.username || !this.state.password}

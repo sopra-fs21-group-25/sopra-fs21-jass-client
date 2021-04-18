@@ -98,7 +98,7 @@ class Register extends React.Component {
                 userType: this.state.userType
             });
             const response = await api.post('/users', requestBody);
-
+            console.log({response})
             if (response.status === 201) {
                 // Get the returned user and update a new object.
                 const user = new User(response.data);
@@ -147,7 +147,7 @@ class Register extends React.Component {
                  <RegisterBox>
                         <Label>Create Username</Label>
                         <InputField
-                            required="true"
+                            required
                             placeholder="Enter your username.."
                             onChange={e => {
                                 this.handleInputChange('username', e.target.value);
@@ -155,7 +155,7 @@ class Register extends React.Component {
                         />
                         <Label>Create Password</Label>
                         <InputField
-                            required="true"
+                            required
                             type="password"
                             placeholder="Enter a secure password"
                             onChange={e => {
