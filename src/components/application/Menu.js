@@ -116,22 +116,22 @@ class Menu extends React.Component {
 
   async componentDidMount() {
     try {
-      const response = await api.get(JSON.stringify('/users'));
-
+      const response = await api.get('/users');
       for(let user of response.data) {
         if(user.token == localStorage.getItem('token')) {
           this.setState({
             users: response.data,
             userId: user.id,
-            // userType ????
+            userType: user.userType,
             friends: user.friends,
             friendRequests: user.friendRequests,
             gameInvitations: user.gameInvitations
-          })
+          }, () => console.log(this.state))
         }
       }
+
     } catch (error) {
-      //alert(`Something went wrong while fetching the users: \n${handleError(error)}`);
+      alert(`Something went wrong while fetching the users: \n${handleError(error)}`);
     }
   }
 
@@ -146,7 +146,14 @@ class Menu extends React.Component {
               </Button>
             </LargeButtonContainer>
             <LargeButtonContainer>
-              <Button>
+              <Button
+                onClick={() =>
+                    this.props.history.push({
+                      pathname: '/join',
+                      state: {...this.state.friends}
+                    }
+                )}
+              >
                 Join Game Table
               </Button>
             </LargeButtonContainer>
