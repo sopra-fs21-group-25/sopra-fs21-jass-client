@@ -5,6 +5,7 @@ import User from '../shared/models/User';
 import { withRouter } from 'react-router-dom';
 import { Button } from '../../views/design/Button';
 import { BackgroundContainerLogin} from "../../helpers/layout";
+import {UserType} from "../shared/models/UserType";
 
 const Title = styled.div`
   font-size: 8em;
@@ -137,8 +138,20 @@ class Login extends React.Component {
   }
 
 
-  defaultRegister() {
+  async guestLogin() {
     try {
+        const requestBody = JSON.stringify({
+          userType: UserType.GUEST
+      });
+      const response = await api.post('/users', requestBody);
+
+      // Get the returned user and update a new object.
+      const user = new User(response.data);
+
+      // Store the token into the local storage.
+      localStorage.setItem('token', user.token);
+
+      // Login successfully worked --> navigate to the route /game in the GameRouter
       this.props.history.push(`/menu`);
     } catch (error) {
       alert(`Something went wrong during the login: \n${handleError(error)}`);
@@ -163,7 +176,7 @@ class Login extends React.Component {
    * Initialization that requires DOM nodes should go here.
    * If you need to load data from a remote endpoint, this is a good place to instantiate the network request.
    * You may call setState() immediately in componentDidMount().
-   * It will trigger an extra rendering, but it will happen before the browser updates the screen.
+   * It will trigger an extra rendering, but it will happen before the browser updates the screen. 
    */
   componentDidMount() {}
 
@@ -217,7 +230,7 @@ class Login extends React.Component {
             <Button
                 width="50%"
                 onClick={() => {
-                this.defaultRegister();
+                this.guestLogin();
               }}
            >
              Enter
