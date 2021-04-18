@@ -171,21 +171,20 @@ class Login extends React.Component {
     return (
       <BackgroundContainerLogin>
         <LoginWrapper>
-        <TitleBox>
-          <Title>Sali im Stübli</Title>
-        </TitleBox>
-
-            <RegisterBox>
-              <Label>Register as a new User</Label>
-              <Button
+          <TitleBox>
+            <Title>Sali im Stübli</Title>
+          </TitleBox>
+          <RegisterBox>
+            <Label>Register as a new User</Label>
+             <Button
                   width="50%"
                   onClick={() => {
-                    this.register();
-                  }}
-              >
-                Register
-              </Button>
-            </RegisterBox>
+                  this.register();
+                }}
+             >
+              Register
+             </Button>
+          </RegisterBox>
           <UserLoginBox>
             <Label>Username</Label>
             <InputField
@@ -203,15 +202,15 @@ class Login extends React.Component {
                 this.handleInputChange('password', e.target.value);
               }}
             />
-              <Button
-                disabled={!this.state.username || !this.state.password}
-                width="50%"
-                onClick={() => {
-                  this.login();
-                }}
-              >
-                Login
-              </Button>
+            <Button
+              disabled={!this.state.username || !this.state.password}
+              width="50%"
+              onClick={() => {
+                this.login();
+              }}
+            >
+              Login
+            </Button>
           </UserLoginBox>
           <GuestBox>
             <Label>Enter as a Guest</Label>
@@ -224,7 +223,6 @@ class Login extends React.Component {
              Enter
             </Button>
           </GuestBox>
-
         </LoginWrapper>
       </BackgroundContainerLogin>
     );
