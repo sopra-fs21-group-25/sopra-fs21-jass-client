@@ -29,3 +29,11 @@ button {
   -webkit-font-smoothing: antialiased;
   box-sizing: border-box;
 }
+
+@font-face {
+  font-family: "Bungee Inline";
+  src: local("Bungee Inline"),
+  url("./fonts/BungeeInline-Regular.ttf") format("truetype");
+  font-weight: bold;
+}
+

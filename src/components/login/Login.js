@@ -1,38 +1,24 @@
 import React from 'react';
 import styled from 'styled-components';
-import { BaseContainer } from '../../helpers/layout';
 import { api, handleError } from '../../helpers/api';
 import User from '../shared/models/User';
 import { withRouter } from 'react-router-dom';
 import { Button } from '../../views/design/Button';
+import { BackgroundContainerLogin} from "../../helpers/layout";
 
-const FormContainer = styled.div`
-  margin-top: 2em;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-height: 300px;
+const Title = styled.div`
+  font-size: 8em;
+  vertical-align: top;
+  color: goldenrod;
+  flex-direction: row;
+  font-family: Bungee Inline;
   justify-content: center;
-`;
-
-const Form = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  width: 60%;
-  height: 375px;
-  font-size: 16px;
-  font-weight: 300;
-  padding-left: 37px;
-  padding-right: 37px;
-  border-radius: 5px;
-  background: linear-gradient(rgb(27, 124, 186), rgb(2, 46, 101));
-  transition: opacity 0.5s ease, transform 0.5s ease;
+  text-align: center;
 `;
 
 const InputField = styled.input`
   &::placeholder {
-    color: rgba(255, 255, 255, 1.0);
+    color: black;
   }
   height: 35px;
   padding-left: 15px;
@@ -40,8 +26,18 @@ const InputField = styled.input`
   border: none;
   border-radius: 20px;
   margin-bottom: 20px;
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
+  background: rgba(255, 255, 255, 0.6);
+  color: black;
+  vertical-align: top;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+    padding: 6px;
+  font-weight: 700;
+  font-size: 15px;
+  width: 100%;
+  height: ${props => props.height || null};
+  border-radius: 5px;
 `;
 
 const Label = styled.label`
@@ -50,10 +46,35 @@ const Label = styled.label`
   text-transform: uppercase;
 `;
 
-const ButtonContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  margin-top: 20px;
+const TitleBox = styled.div`
+  grid-column: 1 / 4;
+  grid-row: 1 ;  
+  align-self: center;
+`;
+
+
+const RegisterBox = styled.div`
+  grid-column: 1;
+  grid-row: 2 ; 
+  align-self: center; 
+`;
+
+const UserLoginBox = styled.div`
+  grid-column: 2;
+  grid-row: 2 ;
+`;
+
+const GuestBox = styled.div`
+  grid-column: 3;
+  grid-row: 2 ; 
+  align-self: center;
+`;
+
+const LoginWrapper = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap: 100px;
+  grid-auto-rows: minmax(100px, auto)
 `;
 
 /**
@@ -75,8 +96,8 @@ class Login extends React.Component {
   constructor() {
     super();
     this.state = {
-      name: null,
-      username: null
+      username: null,
+      password: null
     };
   }
   /**
@@ -88,9 +109,9 @@ class Login extends React.Component {
     try {
       const requestBody = JSON.stringify({
         username: this.state.username,
-        name: this.state.name
+        password: this.state.password
       });
-      const response = await api.post('/users', requestBody);
+      const response = await api.post('/login', requestBody);
 
       // Get the returned user and update a new object.
       const user = new User(response.data);
@@ -99,11 +120,32 @@ class Login extends React.Component {
       localStorage.setItem('token', user.token);
 
       // Login successfully worked --> navigate to the route /game in the GameRouter
-      this.props.history.push(`/game`);
+      this.props.history.push(`/menu`);
     } catch (error) {
       alert(`Something went wrong during the login: \n${handleError(error)}`);
     }
   }
+  /**
+   * redirect to the registration page
+   */
+  register() {
+    try {
+      this.props.history.push(`/register`);
+    } catch (error) {
+      alert(`Something went wrong during the login: \n${handleError(error)}`);
+    }
+  }
+
+
+  defaultRegister() {
+    try {
+      this.props.history.push(`/menu`);
+    } catch (error) {
+      alert(`Something went wrong during the login: \n${handleError(error)}`);
+    }
+  }
+
+
 
   /**
    *  Every time the user enters something in the input field, the state gets updated.
@@ -127,9 +169,23 @@ class Login extends React.Component {
 
   render() {
     return (
-      <BaseContainer>
-        <FormContainer>
-          <Form>
+      <BackgroundContainerLogin>
+        <LoginWrapper>
+          <TitleBox>
+            <Title>Sali im Stübli</Title>
+          </TitleBox>
+          <RegisterBox>
+            <Label>Register as a new User</Label>
+             <Button
+                  width="50%"
+                  onClick={() => {
+                  this.register();
+                }}
+             >
+              Register
+             </Button>
+          </RegisterBox>
+          <UserLoginBox>
             <Label>Username</Label>
             <InputField
               placeholder="Enter here.."
@@ -137,27 +193,38 @@ class Login extends React.Component {
                 this.handleInputChange('username', e.target.value);
               }}
             />
-            <Label>Name</Label>
+            <Label>Password</Label>
             <InputField
               placeholder="Enter here.."
+              required="true"
+              type="password"
               onChange={e => {
-                this.handleInputChange('name', e.target.value);
+                this.handleInputChange('password', e.target.value);
               }}
             />
-            <ButtonContainer>
-              <Button
-                disabled={!this.state.username || !this.state.name}
+            <Button
+              disabled={!this.state.username || !this.state.password}
+              width="50%"
+              onClick={() => {
+                this.login();
+              }}
+            >
+              Login
+            </Button>
+          </UserLoginBox>
+          <GuestBox>
+            <Label>Enter as a Guest</Label>
+            <Button
                 width="50%"
                 onClick={() => {
-                  this.login();
-                }}
-              >
-                Login
-              </Button>
-            </ButtonContainer>
-          </Form>
-        </FormContainer>
-      </BaseContainer>
+                this.defaultRegister();
+              }}
+           >
+             Enter
+            </Button>
+          </GuestBox>
+        </LoginWrapper>
+      </BackgroundContainerLogin>
     );
   }
 }
