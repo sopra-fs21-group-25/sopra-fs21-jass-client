@@ -7,7 +7,10 @@ import { api, handleError } from '../../helpers/api';
 import { Spinner } from '../../views/design/Spinner';
 import { Button } from '../../views/design/Button';
 import {withRouter} from 'react-router-dom';
-import {Friend} from "../shared/models/Friend";
+import FriendList from "../../components/application/FriendList"
+import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
+
+import './css/menu.css';
 
 const Container = styled('div')({
   display: 'flex',
@@ -83,12 +86,8 @@ class Menu extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      users: null,
-      userId: null,
-      userType: null,
-      friends: [],
-      friendRequests: null,
-      gameInvitations: null
+      user: null,
+      users: []
     }
   }
 
@@ -113,25 +112,27 @@ class Menu extends React.Component {
     }*/
   }
 
+  componentDidMount() {
+    this.setState({user: JSON.parse(localStorage.getItem('user'))}, async function () {
+      const response = await api.get('/availableusers/' + this.state.user.id);
+      this.setState({
+        users: response.data
+      })
+    });
+  }
 
-  async componentDidMount() {
-    try {
-      const response = await api.get(JSON.stringify('/users'));
-
-      for(let user of response.data) {
-        if(user.token == localStorage.getItem('token')) {
-          this.setState({
-            users: response.data,
-            userId: user.id,
-            // userType ????
-            friends: user.friends,
-            friendRequests: user.friendRequests,
-            gameInvitations: user.gameInvitations
-          })
-        }
+  filterMainSearch() {
+    var input = document.getElementById("mainSearch");
+    var filter = input.value.toUpperCase();
+    var div = document.getElementsByClassName("list-container")[0];
+    var a = div.getElementsByTagName("li");
+    for (var i = 0; i < a.length; i++) {
+      var txtValue = a[i].textContent || a[i].innerText;
+      if (txtValue.toUpperCase().indexOf(filter) > -1) {
+        a[i].style.display = "";
+      } else {
+        a[i].style.display = "none";
       }
-    } catch (error) {
-      //alert(`Something went wrong while fetching the users: \n${handleError(error)}`);
     }
   }
 
@@ -156,26 +157,41 @@ class Menu extends React.Component {
           <Form>
             <InputField
               placeholder={'Search users...'}
+              id="mainSearch" 
+              onKeyUp={this.filterMainSearch}
             />
+            <div className="list-container">
+              <h2 style={{borderBottom: "1px solid black"}}>All users</h2>
+              <ul>
+                {this.state.users.map((user, index) => {
+                return  <li key={index}>
+                          <ContextMenuTrigger id={index.toString()}>
+                            <a title="user">
+                              {user.status == 'ONLINE' && <div className='circle-green float-child-1'></div>}
+                              {user.status == 'OFFLINE' && <div className='circle-red float-child-1'></div>}
+                              <div>{user.username}</div>
+                            </a>
+                          </ContextMenuTrigger>
+                          <ContextMenu id={index.toString()}>
+                            <MenuItem>
+                              <span>Send friend request</span>
+                            </MenuItem>
+                            <MenuItem>
+                              <span>Invite to the game</span>
+                            </MenuItem>
+                          </ContextMenu>
+                        </li>
+                })}
+              </ul>
+            </div>
           </Form>
         </Container>
         <Container width={'40%'}>
-          <FriendsContainer>
-            {this.state.friends?.map(friend =>
-              <Friend
-                key={friend.username}
-                user={friend}
-              />
-            )}
-          </FriendsContainer>
+          <FriendList></FriendList>
         </Container>
-
-
       </BackgroundContainer>
     );
   }
 }
 
 export default withRouter(Menu);
-
-

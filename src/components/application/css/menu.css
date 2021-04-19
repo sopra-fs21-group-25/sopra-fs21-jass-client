@@ -1,0 +1,40 @@
+.list-container {
+  background-color: #A5A9AB;
+  border: 1px solid black;
+  border-radius: 5px;
+  max-height: 600px;
+  overflow: auto;
+}
+
+ul {
+  list-style-type: none;
+  width: 100%;
+  padding: 0;
+}
+
+h2 {
+  text-align: center;
+}
+
+li h3 {
+  font: bold;
+  color: white
+}
+
+li p {
+  color: white
+}
+
+li a {
+  display: flex;
+}
+
+li {
+  padding: 10px;
+  overflow: auto;
+}
+
+li:hover {
+  background: #ddd;
+  cursor: pointer;
+}
