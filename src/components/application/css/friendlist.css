@@ -44,7 +44,8 @@
   position: absolute;
   background-color: #f6f6f6;
   width: 100%;
-  overflow: auto;
+  overflow: scroll;
+  max-height: 600px;
   border: 1px solid #ddd;
   z-index: 1;
 }
@@ -131,4 +132,5 @@ nav.react-contextmenu {
 .friend-request-container {
     align-items: center;
     background-color: #D3D3D3;
+    text-decoration: none !important;
 }

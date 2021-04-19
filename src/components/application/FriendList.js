@@ -18,12 +18,34 @@ class FriendList extends React.Component {
 
   async componentDidMount() {
     this.setState({user: JSON.parse(localStorage.getItem('user'))}, async function () {
-      const response = await api.get('/friends/' + this.state.user.id);
+      const friends = await api.get('/friends/' + this.state.user.id);
+      const requests = await api.get('/friend_requests/' + this.state.user.id);
+
+      var friend_requests = new Array();
+      const len = requests.data.length;
+      for (var i = 0; i < len; i++) {
+        friend_requests[i] = new Array();
+        var current_request = requests.data.pop();
+        const response = await api.get('/users/' + current_request.fromId);
+        friend_requests[i] = {'id': current_request.id, 'from': response.data};
+      }
     	this.setState({
-      	friends: response.data,
-      	friendRequests: []
+      	friends: friends.data,
+      	friendRequests: friend_requests
     	})
     });
+  }
+
+  async acceptFriendRequest(id) {
+    const response = await api.post('/friend_requests/accept/' + id);
+    window.location.reload();
+    return false;
+  }
+
+  async declineFriendRequest(id) {
+    const response = await api.post('/friend_requests/decline/' + id);
+    window.location.reload();
+    return false;
   }
 
   activateDropdown() {
@@ -54,17 +76,17 @@ class FriendList extends React.Component {
 			  <button onClick={this.activateDropdown} className="dropbtn">Friends <span style={{float: "right"}}>▼</span></button>
 			  <div id="dropdownList" className="dropdown-content">
 			  	<input type="text" placeholder="Search.." id="search" onKeyUp={this.filterSearch}></input>
-				  	{this.state.friendRequests.map((potentialFriend, index) => {
-				  		return	<div key={index}>
+				  	{this.state.friendRequests.map((request, index) => {
+				  		return	<div key={"request" + index}>
 				  							<a className="friend-request-container">
-				  								<Button className="friend-request-button">✔</Button>
-				  								<Button className="friend-request-button">✘</Button>
-		          		      	<div>{potentialFriend.username}</div>
+				  								<Button className="friend-request-button" onClick={() => this.acceptFriendRequest(request.id)}>✔</Button>
+				  								<Button className="friend-request-button" onClick={() => this.declineFriendRequest(request.id)}>✘</Button>
+		          		      	<div>{request.from.username}</div>
 		          		    	</a>
 		          		    </div>
 				  	})}
 		        {this.state.friends.map((friend, index) => {
-		          return 	<div key={"nested" + index}>
+		          return 	<div key={"friend" + index}>
 		                   	<ContextMenuTrigger id={"nested" + index.toString()}>
 		                     	<a title="friend">
 		          	          	{friend.status == 'ONLINE' && <div className='circle-green float-child-1'></div>}
@@ -79,6 +101,9 @@ class FriendList extends React.Component {
 						            	<MenuItem>
 						              	<span>Invite to the game</span>
 						            	</MenuItem>
+                          <MenuItem>
+                            <span>Remove from friends</span>
+                          </MenuItem>
 						          	</ContextMenu>
 				        			</div>
 		        })}

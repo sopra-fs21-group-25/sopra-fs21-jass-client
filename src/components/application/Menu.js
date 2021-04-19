@@ -136,6 +136,10 @@ class Menu extends React.Component {
     }
   }
 
+  async sendFriendRequest(request_to) {
+    const response = await api.post('/friend_requests/' + this.state.user.id, {"id": request_to});
+  }
+
   render() {
     return (
       <BackgroundContainer style={{flexDirection: 'row'}}>
@@ -180,7 +184,7 @@ class Menu extends React.Component {
                             </a>
                           </ContextMenuTrigger>
                           <ContextMenu id={index.toString()}>
-                            <MenuItem>
+                            <MenuItem onClick={()=>this.sendFriendRequest(user.id)}>
                               <span>Send friend request</span>
                             </MenuItem>
                             <MenuItem>

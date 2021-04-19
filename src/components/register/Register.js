@@ -98,14 +98,13 @@ class Register extends React.Component {
                 userType: this.state.userType
             });
             const response = await api.post('/users', requestBody);
-            console.log({response})
             if (response.status === 201) {
                 // Get the returned user and update a new object.
                 const user = new User(response.data);
-                console.log(user)
 
                 // Store the token into the local storage.
                 localStorage.setItem('token', user.token);
+                localStorage.setItem('user', JSON.stringify(user));
 
                 // Login successfully worked --> navigate to the route /game in the UsersOverviewRouter
                 this.props.history.push(`/menu`);
