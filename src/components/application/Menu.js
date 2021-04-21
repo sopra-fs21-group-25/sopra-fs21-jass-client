@@ -112,12 +112,12 @@ class Menu extends React.Component {
     }*/
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     this.setState({user: JSON.parse(localStorage.getItem('user'))}, async function () {
       const response = await api.get('/availableusers/' + this.state.user.id);
       this.setState({
         users: response.data
-      })
+      }, console.log(this.state));
     });
   }
 
@@ -155,7 +155,7 @@ class Menu extends React.Component {
                 onClick={() =>
                     this.props.history.push({
                       pathname: '/join',
-                      state: {...this.state.friends}
+                      state: {user: this.state.user}
                     }
                 )}
               >

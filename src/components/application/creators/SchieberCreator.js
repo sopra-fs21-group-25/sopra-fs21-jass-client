@@ -202,11 +202,12 @@ class SchieberCreator extends React.Component {
 
   async submit() {
     try {
-      const usersResponse = await api.get('/users');
-      const myUsername = usersResponse.data.filter(user => {
-        return user.token == localStorage.getItem('token');
-      })[0].username;
+      const myId = JSON.parse(localStorage.getItem('user')).id;
+      const myUsername = JSON.parse(localStorage.getItem('user')).username;
 
+      const response = await api.get(`/users/${myId}`)
+      const user = response.data;
+      console.log({user})
       const packedIngameModes = this.state.ingameModes.map(mode => {
         return {ingameMode: mode.value.toUpperCase(), multiplicator: this.state.ingameModesMultiplicators[mode.value]};
       });
@@ -220,15 +221,20 @@ class SchieberCreator extends React.Component {
         weis: this.state.weis,
         crossWeis: this.state.crossWeis,
         weisAsk: this.state.weisAsk,
-        creatorUsername: myUsername
+        creatorUsername: myUsername,
+        usersInLobby: []
       });
 
       const lobbyResponse = await api.post('/lobbies', requestBody);
-      console.log(lobbyResponse.data);
 
+      const lobbyId = lobbyResponse.data.id;
+      const userIdRequest = JSON.stringify({userId: myId});
+      console.log({userIdRequest});
+      const lobbyPutUserResponse = await api.put(`/lobbies/${lobbyId}`, userIdRequest);
+      console.log({response: lobbyPutUserResponse});
       this.props.history.push({
-        pathname: `/lobby/${lobbyResponse.data.id}`,
-        state: {...lobbyResponse.data}
+        pathname: `/lobby/${lobbyPutUserResponse.data.id}`,
+        state: {...lobbyPutUserResponse.data}
       });
 
     } catch(error) {

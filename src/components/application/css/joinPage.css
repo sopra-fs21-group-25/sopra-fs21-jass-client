@@ -1,0 +1,15 @@
+
+.nav.nav-tabs .nav-link.active {
+    background-color: white;
+    color: black;
+}
+
+.nav.nav-tabs .nav-link:not(.active) {
+    background-color: #808080;
+    color: #cbcbcb;
+}
+
+.nav.nav-tabs .nav-link.disabled {
+    background-color: #555555;
+    color: #787878;
+}
