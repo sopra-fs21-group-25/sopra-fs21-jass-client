@@ -1,0 +1,79 @@
+.initContainer {
+	display: grid;
+	grid-template-columns: 10% 5% auto 5% 10%;
+ 	grid-template-rows: 15% auto 15%;
+ 	height: 100%;
+ 	width: 100%;
+}
+
+.playerA {
+	grid-column-start: 3;
+  	grid-column-end: 3;
+  	grid-row-start: 3;
+  	grid-row-end: 3;
+  	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.playerB {
+	grid-column-start: 1;
+  	grid-column-end: 1;
+  	grid-row-start: 2;
+  	grid-row-end: 2;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+div.playerB > div {
+	-webkit-transform: rotate(90deg);
+    -moz-transform: rotate(90deg);
+    -o-transform: rotate(90deg);
+    -ms-transform: rotate(90deg);
+	transform: rotate(90deg);
+}
+
+.playerC {
+	grid-column-start: 3;
+  	grid-column-end: 3;
+  	grid-row-start: 1;
+  	grid-row-end: 1;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+div.playerC > div {
+	height: 0px !important;
+}
+
+.playerD {
+	grid-column-start: 5;
+  	grid-column-end: 5;
+  	grid-row-start: 2;
+  	grid-row-end: 2;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+div.playerD > div {
+	-webkit-transform: rotate(90deg);
+    -moz-transform: rotate(90deg);
+    -o-transform: rotate(90deg);
+    -ms-transform: rotate(90deg);
+	transform: rotate(90deg);
+	height: 0px !important;
+}
+
+.actionContainer {
+	grid-column-start: 3;
+  	grid-column-end: 3;
+  	grid-row-start: 2;
+  	grid-row-end: 2;
+  	background-repeat: no-repeat;
+  	background-position: center;
+  	background-size: auto 80%;
+	background-image: url("../../../views/images/interfaceImages/jass_table.png");
+}
