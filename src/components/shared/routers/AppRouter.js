@@ -10,6 +10,7 @@ import CreationPage from "../../application/CreationPage";
 import LobbyPage from "../../application/LobbyPage";
 import Register from "../../register/Register";
 import JoinPage from "../../application/JoinPage";
+import GameTestPage from "../../application/GameTestPage";
 
 /**
  * Main router of your application.
@@ -71,6 +72,13 @@ class AppRouter extends React.Component {
                 render={() => (
                     <Register />
                 )}
+            />
+            <Route
+              path="/gametest"
+              exact
+              render={() => (
+                  <GameTestPage />
+              )}
             />
         </Switch>
       </BrowserRouter>
