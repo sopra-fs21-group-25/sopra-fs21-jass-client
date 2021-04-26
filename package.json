@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@material-ui/core": "^4.11.3",
+    "@stomp/stompjs": "^6.1.0",
     "axios": "^0.21.1",
     "bootstrap": "^4.6.0",
     "chokidar": "^3.0.0",
@@ -16,6 +17,8 @@
     "react-router-dom": "^5.2.0",
     "react-scripts": "^4.0.2",
     "react-select": "^4.3.0",
+    "react-stomp-hooks": "^1.2.3",
+    "sockjs-client": "^1.5.1",
     "styled-components": "^5.2.1"
   },
   "scripts": {

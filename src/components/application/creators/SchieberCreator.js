@@ -228,7 +228,7 @@ class SchieberCreator extends React.Component {
       const lobbyResponse = await api.post('/lobbies', requestBody);
 
       const lobbyId = lobbyResponse.data.id;
-      const userIdRequest = JSON.stringify({userId: myId});
+      const userIdRequest = JSON.stringify({userId: myId, remove: false, add: true});
       console.log({userIdRequest});
       const lobbyPutUserResponse = await api.put(`/lobbies/${lobbyId}`, userIdRequest);
       console.log({response: lobbyPutUserResponse});

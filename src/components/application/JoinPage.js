@@ -1,12 +1,12 @@
 import styled from "styled-components";
 import React, {useState, useEffect} from "react";
-import {useHistory} from 'react-router-dom';
 import {BackgroundContainer} from "../../helpers/layout";
 import {api} from "../../helpers/api";
 import {Col, Nav, Tab} from "react-bootstrap";
 import LobbyList from "./assets/LobbyList";
 import LobbyListItem from "./assets/LobbyListItem";
 import './css/joinPage.css';
+import {Spinner} from "../../views/design/Spinner";
 
 const OuterWrapper = styled('div')({
   display: 'block',
@@ -27,25 +27,32 @@ const listBoxStyle = {
   borderLeft: '1px solid black',
   borderRight: '1px solid black',
   borderBottom: '1px solid black',
+  borderTop: '5px solid black',
   borderBottomLeftRadius: '5px',
   borderBottomRightRadius: '5px',
-  background: 'linear-gradient(0deg, rgba(46,46,46,1) 0%, rgba(0,83,16,1) 27%, rgba(192,201,194,1) 100%)'
+  background: 'linear-gradient(0deg, rgba(46,46,46,1) 0%, rgba(0,83,16,1) 27%, rgba(192,201,194,1) 100%)',
+  overflowX: 'hidden',
+  overflowY: 'auto'
 }
 
 
 const JoinPage = () => {
   const [user, setUser] = useState({userType: 'GuestUser'});
   const [lobbies, setLobbies] = useState([]);
-  const [lobbyType, setLobbyType] = useState('public');
-  const [mode, setMode] = useState('schieber');
-  const history = useHistory();
+
+  const myId = JSON.parse(localStorage.getItem('user')).id;
 
   useEffect(() => {
     fetchUser().then(value => console.log(value));  // use .then() for callback logging
 
-    fetchLobbies().then(lobbies => console.log(lobbies)); // use .then() for callback logging
+    fetchLobbies().then(lobbies => setLobbies(lobbies)); // set initially fetched lobbies
+
     const interval = setInterval(() => {
-      fetchLobbies().then(lobbies => console.log(lobbies)); // use .then() for callback logging
+      fetchLobbies().then(fetchedLobbies => {
+        if(lobbies != fetchedLobbies) {
+          setLobbies(fetchedLobbies);   // only refresh lobby-list if the has been changes
+        }
+      });
     }, 10000) // refresh lobbies every 10 seconds
 
     return () => clearInterval(interval); // clear interval on unmount
@@ -53,7 +60,6 @@ const JoinPage = () => {
   }, [])  // empty dependencies indicate to fetch only once on component mount
   const fetchUser = async () => {
     try {
-      const myId = JSON.parse(localStorage.getItem('user')).id;
       const response = await api.get(`users/${myId}`);
 
       setUser(response.data);
@@ -65,8 +71,7 @@ const JoinPage = () => {
   }
   const fetchLobbies = async () => {
     try {
-      const response = await api.get('/lobbies/public_and_friends');
-      setLobbies(response.data);
+      const response = await api.get(`/lobbies/accessible/${myId}`);
 
       return response.data;
 
@@ -97,7 +102,7 @@ const JoinPage = () => {
                     <InnerWrapper>
                       <Tab.Container id={'modeTabsFriendsTab'} defaultActiveKey={'schieber'} style={{height: '100%', padding: 0}}>
                         <Col style={{height: 'inherit', padding: 0}}>
-                          <Nav justify={true} variant={'tabs'} onSelect={eventKey => setMode(eventKey)}>
+                          <Nav justify={true} variant={'tabs'}>
                             <Nav.Item>
                               <Nav.Link style={{borderRadius: 0}} eventKey={'schieber'}>Schieber</Nav.Link>
                             </Nav.Item>
@@ -115,9 +120,10 @@ const JoinPage = () => {
                             <Tab.Pane eventKey={'schieber'} style={{height: 'inherit'}}>
                               <InnerWrapper style={listBoxStyle}>
                                 <LobbyList id={'friendsSchieberList'}>
-                                  {
-                                    lobbies?.filter(lobby => lobby.lobbyType === 'friends').map(lobby => {
-                                      return <LobbyListItem key={lobby.id} lobby={lobby}/>
+                                  {!lobbies ? <Spinner/> :
+                                    lobbies.filter(lobby => lobby.lobbyType === 'friends').map(lobby => {
+                                      console.log({lobby});
+                                      return <LobbyListItem key={lobby.id} lobby={lobby}/>;
                                     })
                                   }
                                 </LobbyList>
@@ -147,7 +153,7 @@ const JoinPage = () => {
                     <InnerWrapper>
                       <Tab.Container id={'modeTabsPublicTab'} defaultActiveKey={'schieber'} style={{height: '100%', padding: 0}}>
                         <Col style={{height: 'inherit', padding: 0}}>
-                          <Nav justify={true} variant={'tabs'} onSelect={eventKey => setMode(eventKey)}>
+                          <Nav justify={true} variant={'tabs'}>
                             <Nav.Item>
                               <Nav.Link style={{borderRadius: 0}} eventKey={'schieber'}>Schieber</Nav.Link>
                             </Nav.Item>
@@ -165,10 +171,11 @@ const JoinPage = () => {
                             <Tab.Pane eventKey={'schieber'} style={{height: 'inherit'}}>
                               <InnerWrapper style={listBoxStyle}>
                                 <LobbyList id={'publicSchieberList'}>
-                                  {
-                                    lobbies?.map(lobby => {
-                                      return <div key={lobby.id}><LobbyListItem lobby={lobby}/></div>
-                                    })
+                                  {!lobbies ? <Spinner/> :
+                                      lobbies.map(lobby => {
+                                        console.log({lobby});
+                                        return <LobbyListItem key={lobby.id} lobby={lobby}/>;
+                                      })
                                   }
                                 </LobbyList>
                               </InnerWrapper>
