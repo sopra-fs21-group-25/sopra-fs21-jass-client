@@ -1,63 +1,99 @@
 import React, {useEffect, useState} from 'react';
-import {useSubscription, useStompClient} from 'react-stomp-hooks';
 import styled from "styled-components";
 import {Spinner} from "../../../views/design/Spinner";
-import {api} from "../../../helpers/api";
-import {useHistory} from "react-router-dom";
 
 
+const ItemContainer = styled('div')({
+  display: 'flex',
+  width: '100%',
+  height: '50px',
+  border: '1px solid black',
+  background: '#7F8385'
+});
+
+const LeftItemComponentContainer = styled('div')({
+  display: 'flex',
+  width: '70%',
+  height: 'inherit',
+  alignItems: 'center',
+  justifyContent: 'center',
+  fontWeight: 700,
+  fontSize: '15px',
+  color: 'white'
+});
+
+const RightItemComponentContainer = styled('div')({
+  display: 'flex',
+  width: '30%',
+  height: 'inherit',
+  alignItems: 'center',
+  justifyContent: 'center',
+});
+
+const RemoveButton = styled.button`
+  &:hover {
+    transition: 0.1s;
+    transform: translateY(-2px);
+    background-color: #A5A9AB;
+  }
+  padding: 6px;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 15px;
+  text-align: center;
+  color: rgba(255, 255, 255, 1);
+  width: 60%;
+  height: 60%;
+  border: 1px solid black;
+  border-radius: 5px;
+  cursor: ${props => (props.disabled ? "default" : "pointer")};
+  background: rgb(186, 31, 31, 1);
+  transition: all 0.3s ease;
+`;
+
+const ListItem = props => {
+
+  const removeUser = () => {
+    props.client.publish({
+      destination: `/app/lobbies/${props.lobbyId}/kicked/${props.user}`,
+      data: null
+    })
+  };
+
+  return (
+      <li>
+        <ItemContainer>
+          <LeftItemComponentContainer>
+            {props.user}
+          </LeftItemComponentContainer>
+          <RightItemComponentContainer>
+            {props.removable ? (
+                <RemoveButton onClick={() => removeUser()}>X</RemoveButton>
+            ) : null}
+          </RightItemComponentContainer>
+        </ItemContainer>
+      </li>
+  );
+};
 
 const LobbyPlayerList = props => {
-  const [users, setUsers] = useState([]);
-  const [fetch, setFetch] = useState(false);
-  const lobbyId = props.lobbyId;
-  const myUsername = JSON.parse(localStorage.getItem('user')).username;
-  const myId = JSON.parse(localStorage.getItem('user')).id;
-  const history = useHistory();
   let uniqueKey = 0;    // key generator for children in the render method
+  const stompClient = props.client;
+  const lobbyId = props.lobbyId;
 
-  const stompClient = useStompClient();
-  useSubscription(`/topic/lobbies/${props.lobbyId}/fetch`, () => {
-    setFetch(true);
-  });
-
-
-  useEffect(() => {
-    fetchUsers().then(response => console.log({users: response}));
-  }, [fetch]);
-
-
-  const backToMenu = async () => {
-    localStorage.removeItem('topPlayer');
-    localStorage.removeItem('bottomPlayer');
-    localStorage.removeItem('leftPlayer');
-    localStorage.removeItem('rightPlayer');
-
-    const userIdRemoveRequest = JSON.stringify({userId: myId, remove: true, add: false})
-    const response = await api.put(`/lobbies/${lobbyId}`, userIdRemoveRequest);
-    console.log({data: response.data});
-    history.push('/menu');
-  }
-
-  // upon re-fetch notification do re-fetch
-  const fetchUsers = async () => {
-    try {
-      const response = await api.get(`/lobbies/${lobbyId}`);
-      setUsers([...response.data.usersInLobby]);
-
-      return response.data.usersInLobby;
-
-    } catch (error) {
-      alert('It seems this lobby has been shut down...');
-      await backToMenu();
-    }
-  }
 
   return (
       <div>
         <ul>
-          {users ? (
-              users.map(user => <li key={uniqueKey++}>{user}</li>)
+          {props.users ? (
+              props.users.map(user =>
+                  <ListItem
+                    key={uniqueKey++}
+                    user={user}
+                    removable={props.permitted && props.creator !== user}
+                    client={stompClient}
+                    lobbyId={lobbyId}
+                  />)
             ) : (
                 <Spinner/>
           )}

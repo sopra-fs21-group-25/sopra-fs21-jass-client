@@ -62,6 +62,10 @@ export const PlayerHeader = styled.div`
   text-align: center;
 `;
 
+export const PlayerListWrapper = styled.div`
+  grid-row: 2;
+`;
+
 export const ChatWrapper = styled.div`
   grid-column: 3;
   grid-row: 2 / 4; 
