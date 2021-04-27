@@ -7,8 +7,15 @@ import { isProduction } from './isProduction';
  * @returns {string}
  */
 export const getDomain = () => {
-  const prodUrl = 'https://https://sopra-fs21-group-25-server.herokuapp.com/'; // TODO: insert your groups heroku prod url for server (once deployed)
+  const prodUrl = 'https://https://sopra-fs21-group-25-server.herokuapp.com/';
   const devUrl = 'http://localhost:8080';
 
   return isProduction() ? prodUrl : devUrl;
 };
+
+export const getWebsocketDomain = () => {
+  const prodUrl = 'wss://wss://sopra-fs21-group-25-server.herokuapp.com';
+  const devUrl = 'ws://localhost:8080';
+
+  return isProduction() ? prodUrl : devUrl;
+}

@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import Header from "./views/Header";
 import AppRouter from "./components/shared/routers/AppRouter";
 import {StompSessionProvider} from "react-stomp-hooks";
+import {getWebsocketDomain} from "./helpers/getDomain";
 
 /**
  * Happy coding!
@@ -12,7 +13,7 @@ class App extends Component {
     return (
       <div>
         <StompSessionProvider
-            brokerURL={'ws://localhost:8080/websocket'}
+            brokerURL={`${getWebsocketDomain()}/websocket`}
             debug={STOMP => console.log({STOMP})}
             onConnect={() => console.log({STOMP_CONNECT: 'TCP connection successfully established'})}
         >
