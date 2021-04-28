@@ -7,11 +7,12 @@ import './css/init.css';
 class InitDistribution extends Component {
   constructor() {
     super();
-    this.state = {
-      layout: "spread",
-      handSize: "9" 
-    }
+    // this.state = {
+    //   layout: "spread",
+    //   handSize: "9" 
+    // }
     this.used = {}
+    this.hand = this.randomHand("36");
   }
 
   randomHand = (size) => {
@@ -35,19 +36,19 @@ class InitDistribution extends Component {
     return (
         <div className="initContainer">
           <div className="playerA">
-            <Hand hide={false} layout={this.state.layout} cards={this.randomHand(this.state.handSize)} cardSize={ 100 }/>
+            <Hand hide={false} layout={"spread"} cards={this.hand.slice(0, 9)} cardSize={ 100 }/>
           </div>
           
           <div className="playerB">
-            <Hand hide={true} layout={this.state.layout} cards={this.randomHand(this.state.handSize)} cardSize={ 100 }/>          
+            <Hand hide={true} layout={"spread"} cards={this.hand.slice(9, 18)} cardSize={ 100 }/>          
           </div>
           
           <div className="playerC">
-            <Hand hide={true} layout={this.state.layout} cards={this.randomHand(this.state.handSize)} cardSize={ 100 }/>
+            <Hand hide={true} layout={"spread"} cards={this.hand.slice(18, 27)} cardSize={ 100 }/>
           </div>
           
           <div className="playerD">
-            <Hand hide={true} layout={this.state.layout} cards={this.randomHand(this.state.handSize)} cardSize={ 100 }/> 
+            <Hand hide={true} layout={"spread"} cards={this.hand.slice(27, 36)} cardSize={ 100 }/> 
           </div>
 
           <div className="actionContainer">
