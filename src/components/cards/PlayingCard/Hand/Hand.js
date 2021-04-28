@@ -6,7 +6,7 @@ import ReactDOM from 'react-dom';
 class Hand extends Component {
     constructor(props) {
         super(props);
-        console.assert(Array.isArray(this.props.cards), 'Hands must have cards, even as an empty array');
+        // console.assert(Array.isArray(this.props.cards), 'Hands must have cards, even as an empty array');
         this.cardStyles = [];
 
         this.state = {
@@ -14,6 +14,8 @@ class Hand extends Component {
           cardSize : this.props.cardSize,
           elevated : this.props.elevated,
           layout: this.props.layout,
+          disabled: this.props.disabled || false,
+          playArea: this.props.playArea,
           prevProps: {},
         };
         this.deadCards = {};
@@ -21,26 +23,17 @@ class Hand extends Component {
         //setup for fanning
 
     }
-    // componentWillReceiveProps(props) {
-    //     console.log('got some props: ', props)
 
-    //     this.setState({
-    //         cards : props.cards,
-    //         cardSize : props.cardSize,
-    //         elevated : props.elevated,
-    //         layout: props.layout
-    //     })
-    //     this.handLength = props.cards.length;
-
-    // }
     static getDerivedStateFromProps(props, state) {
         const { prevProps } = state;
-        if (prevProps.cards !== props.cards || prevProps.cardSize !== props.cardSize || prevProps.elevated !== props.elevated || prevProps.layout !== props.layout) {
+        if (prevProps.cards !== props.cards || prevProps.cardSize !== props.cardSize || prevProps.elevated !== props.elevated || prevProps.layout !== props.layout || prevProps.disabled !== props.disabled || prevProps.playArea !== props.playArea) {
           return {
             cards: props.cards,
             cardSize : props.cardSize,
             elevated : props.elevated,
             layout: props.layout,
+            disabled : props.disabled,
+            playArea: props.playArea,
             prevProps: props
           }
         }
@@ -51,14 +44,16 @@ class Hand extends Component {
     elevateOne(card){
 
     }
+
     resetStack(){
         this.over = 50;
     }
+
     resetSpread(){
         this.initialOver = 110 * (this.handLength - 1);
         this.over = this.initialOver / 2;
-
     }
+
     resetFanning(){
         this.curl = Math.pow(this.handLength, 1.30) * 10; //curl of cards in hand
         this.deg = this.props.cards.length > 1 ? -this.handLength * 15 : 0;
@@ -70,7 +65,6 @@ class Hand extends Component {
     }
 
     spreadStyle(num){
-
         if(num > 0){
             this.over -= this.initialOver / (this.handLength - 1);
         }
@@ -79,15 +73,16 @@ class Hand extends Component {
             'transform' : `translateX(${(-50 + this.over * -1)}%)`
         }
     }
+
     fanStyle(num) {
-        console.log("handlenght", this.handLength);
-        console.log("num", num)
+        // console.log("handlenght", this.handLength);
+        // console.log("num", num)
         let overHalf = num > (this.handLength - 1) / 2;
         if (false && process.env.NODE_ENV !== "production") {
-            console.log('degs', this.degs);
-            console.log('over', this.over);
-            console.log('down', (this.overHalf ? -this.down : this.down));
-            console.log('num: ', num)
+            // console.log('degs', this.degs);
+            // console.log('over', this.over);
+            // console.log('down', (this.overHalf ? -this.down : this.down));
+            // console.log('num: ', num)
         }
         if (num > 0) {
             this.degs -= this.deg / (this.handLength - 1);
@@ -100,6 +95,7 @@ class Hand extends Component {
             translateX(${(-50 + this.over * -1)}%) 
             rotate(${this.degs}deg)` }
     }
+
     stackStyle(num){
         if(num > 0){
             this.over -= 20 / this.handLength
@@ -109,17 +105,19 @@ class Hand extends Component {
             'transform' : `translateX(${(this.over * -1)}%)`
         }
     }
+
     isCardDead(id) {
-        console.log('card is dead: ', this.deadCards[id] ? this.deadCards[id].dead : false)
+        // console.log('card is dead: ', this.deadCards[id] ? this.deadCards[id].dead : false)
         return this.deadCards[id] ? this.deadCards[id].dead : false;
     }
+
     removeCard(id, style) {
         if(!this.isCardDead(id)) {
             this.deadCards[id] = {
                 dead : true,
                 style : style //should it keep track of its own style?
             };
-            console.log(this.deadCards);
+            // console.log(this.deadCards);
             if(this.handLength) {
                 this.handLength--;
             }
@@ -133,21 +131,21 @@ class Hand extends Component {
             //     layout: this.state.layout
             // })
         }
-
-
     }
+
     onClick(key) {
         //this.props.onClick({card: key, hand : this.props.handId});
     }
+
     onDragStop(key) {
-        console.log(this);
+        // console.log(this);
         // console.log('style: ', )
-        console.log('reviving: ', key);
+        // console.log('reviving: ', key);
 
         // this.refs[key].state.draggableDivStyle = {"transitionDuration": "0.25s"}
         let cardToSpliceInto = this.state.cards[this.indexToInsertInto(key) + 1];
         this.refs[key].state.position = {x : this.refs[key].getBindingClientRect().x, y : this.refs[key].getBindingClientRect().y}
-        console.log('card to splice into: ', cardToSpliceInto);
+        // console.log('card to splice into: ', cardToSpliceInto);
         this.state.cards.splice(this.state.cards.indexOf(key), 1);
         this.state.cards.splice(this.indexToInsertInto(key), 0, key);
 
@@ -158,6 +156,7 @@ class Hand extends Component {
         }
 
     }
+
     onDrag(key) {
         // console.log("draggin: ");
         // // add a dup card into the hand?
@@ -171,9 +170,11 @@ class Hand extends Component {
 
 
     }
+
     onDragStart(key) {
         this.removeCard(key, this.refs[key].state.style);
     }
+
     indexToInsertInto(key) {
         let indexToInsertInto = 0;
         let xPositionOfKey = this.refs[key].getBindingClientRect().x;
@@ -181,7 +182,7 @@ class Hand extends Component {
             if(this.state.cards[i] === key) {
                 continue;
             }
-            console.log('xCard ', this.state.cards[i], ' : ', this.refs[key].getBindingClientRect().x)
+            // console.log('xCard ', this.state.cards[i], ' : ', this.refs[key].getBindingClientRect().x)
             if(xPositionOfKey < this.refs[this.state.cards[i]].getBindingClientRect().x) {
                 return indexToInsertInto;
             } else {
@@ -223,9 +224,9 @@ class Hand extends Component {
     // }
     render() {
         let index = 0;
-        console.log('state: ', this.state);
+        // console.log('state: ', this.state);
         if(this.state.layout === 'fan'){
-            console.log('reseting fanning');
+            // console.log('reseting fanning');
             this.resetFanning();
             this.styleType = this.fanStyle;
         }
@@ -242,8 +243,8 @@ class Hand extends Component {
           style={{ 'height': this.state.layout === 'stack' ? this.state.cardSize : this.state.cardSize * 2}} >
           {
               this.state.cards.map((card, index) => {
-                  console.log('id: ', card);
-                  console.log('refs', this.refs);
+                  {/*console.log('id: ', card);*/}
+                  {/*console.log('refs', this.refs);*/}
                   return (
                       <PlayingCard
                         key={card}
@@ -251,14 +252,16 @@ class Hand extends Component {
                         onDragStop={this.onDragStop.bind(this)}
                         onDrag={this.onDrag.bind(this)}
                         removeCard={this.removeCard.bind(this)}
+                        disabled={this.state.disabled}
+                        playArea={this.state.playArea}
                         ref={card}
-                        height={ 130 }
+                        height={this.state.cardSize}
                         card={ card }
                         style={this.isCardDead(card) ? this.deadCards[card].style : this.styleType(index++)} //just give it the current index, PlayingCard.js will fix that
                         flipped={ this.props.hide }
                         elevateOnClick={50}
                         onClick={this.onClick.bind(this)}
-                        zIndex = {index}
+                        zIndex={index}
                       />
                   )
               })

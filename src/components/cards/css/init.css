@@ -72,8 +72,53 @@ div.playerD > div {
   	grid-column-end: 3;
   	grid-row-start: 2;
   	grid-row-end: 2;
-  	background-repeat: no-repeat;
+ 	display: flex;
+ 	justify-content: center;
+}
+
+.actionChildContainer {
+	margin: auto;
+    position: relative;
+    width: 40%;
+    padding-bottom: 40%;
+	background-repeat: no-repeat;
   	background-position: center;
-  	background-size: auto 80%;
+  	background-size: auto 90%;
 	background-image: url("../../../views/images/interfaceImages/jass_table.png");
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+ 	grid-template-rows: 1fr 1fr 1fr;
+}
+
+.playerAcardSpot {
+	grid-column-start: 2;
+  	grid-column-end: 2;
+  	grid-row-start: 3;
+  	grid-row-end: 3;
+  	background-color: black;
+
+}
+
+.playerBcardSpot {
+	grid-column-start: 1;
+  	grid-column-end: 1;
+  	grid-row-start: 2;
+  	grid-row-end: 2;
+  	background-color: green;
+}
+
+.playerCcardSpot {
+	grid-column-start: 2;
+  	grid-column-end: 2;
+  	grid-row-start: 1;
+  	grid-row-end: 1;
+  	background-color: yellow;
+}
+
+.playerDcardSpot {
+	grid-column-start: 3;
+  	grid-column-end: 3;
+  	grid-row-start: 2;
+  	grid-row-end: 2;
+  	background-color: red;
 }
