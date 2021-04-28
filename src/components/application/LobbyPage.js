@@ -15,6 +15,7 @@ import {
   SearchBar, PlayerListWrapper
 } from "./assets/LobbyAssets";
 import LobbyPlayerList from "./assets/LobbyPlayerList";
+import LobbySearchbar from "./assets/LobbySearchbar";
 
 
 function parseUsers(top, bot, left, right) {
@@ -26,13 +27,40 @@ function parseUsers(top, bot, left, right) {
   });
 }
 
+// leveraged to exclude the users that are currently in the lobby from the list of users one can invite
+function excludeSublist(list, sublist) {
+  const subset = new Set(sublist);
+  return [...new Set(list.filter(el => !subset.has(el.username)))];
+}
+
+// returns false if list-elements are not identical, true otherwise
+function containTheSameUsers(list1, list2) {
+  if(list1.length != list2.length) {
+    return false;
+  }
+
+  const l1set = new Set(list1.map(u => u.id));
+  const l2set = new Set(list2.map(u => u.id));
+
+  for(let x of l1set) {
+    if(!l2set.has(x)) return false;
+  }
+
+  for(let y of l2set) {
+    if(!l1set.has(y)) return false;
+  }
+
+  return true;
+}
+
 const LobbyPage = () => {
   const [thisLobby, setThisLobby] = useState(useLocation().state);
-  const [users, setUsers] = useState(useLocation().state.usersInLobby);
-  const [fetchSwitch, setFetchSwitch] = useState(false);
+  const [lobbyUsers, setLobbyUsers] = useState(useLocation().state.usersInLobby);
+  const [allUsers, setAllUsers] = useState([]);
+  const [lobbyUsersFetchSwitch, setLobbyUsersFetchSwitch] = useState(false);
+  const [allUsersFetchSwitch, setAllUsersFetchSwitch] = useState(false);
   const myId = JSON.parse(localStorage.getItem('user')).id;
   const myUsername = JSON.parse(localStorage.getItem('user')).username;
-  console.log({myUsername});
   const iAmCreator = useLocation().state.creatorUsername === myUsername;
   const history = useHistory();
   const stompClient = useStompClient();
@@ -89,14 +117,14 @@ const LobbyPage = () => {
       }
     } catch(error) {
       alert("Something went wrong when trying to return to the menu")
+    } finally {
+      // finally remove the items from my localStorage and redirect back to the menu
+      localStorage.removeItem('topPlayer');
+      localStorage.removeItem('bottomPlayer');
+      localStorage.removeItem('leftPlayer');
+      localStorage.removeItem('rightPlayer');
+      history.push('/menu');
     }
-
-    // finally remove the items from my localStory and redirect back to the menu
-    localStorage.removeItem('topPlayer');
-    localStorage.removeItem('bottomPlayer');
-    localStorage.removeItem('leftPlayer');
-    localStorage.removeItem('rightPlayer');
-    history.push('/menu');
   }
 
 
@@ -116,7 +144,7 @@ const LobbyPage = () => {
   // if another player joins or leaves, get a notification to initialize re-fetching an table synchronisation
   useSubscription(`/lobbies/${thisLobby.id}/fetch`, msg => {
     // trigger the user fetching switch
-    setFetchSwitch(!fetchSwitch);
+    setLobbyUsersFetchSwitch(!lobbyUsersFetchSwitch);
 
     // additionally if I am the creator and a user has joined I need to inform him about the seats already taken
     if(iAmCreator && msg.body === 'join') {
@@ -128,9 +156,10 @@ const LobbyPage = () => {
       stompClient.publish({
         destination: `/app/lobbies/${thisLobby.id}/table`,
         body: parseUsers(top, bottom, left, right)
-      })
+      });
     }
   });
+
 
   // on component mount (I have joined the lobby), inform the other users in the lobby to re-fetch the users in the lobby
   useEffect(() => {
@@ -138,16 +167,44 @@ const LobbyPage = () => {
       destination: `/app/lobbies/${thisLobby.id}/fetch`,
       body: 'join'
     });
+
+    if(iAmCreator) {
+      const interval = setInterval(() => {
+        setAllUsersFetchSwitch(prev => !prev);
+      }, 5000); // trigger refreshing all online users every 10 seconds
+
+      return () => clearInterval(interval);
+    }
   }, [])
 
-  // does the actual re-fetching of the users triggered by state update of fetchSwitch
+  // does the actual re-fetching of all online users not present in this lobby
+  useEffect(() => {
+    // as the lobby creator I need to fetch a list of all online users in order to invite users
+    if(iAmCreator) {
+      const fetchAllUsers = async () => {
+        try {
+          const response = await api.get('/users/online');
+          return response.data;
+        } catch(error) {
+          alert('Could not fetch any users to invite...');
+        }
+      }
+
+      fetchAllUsers().then(fetchedUsers => {
+        // update all available online users only if there has been an actual change
+        setAllUsers(excludeSublist(fetchedUsers, lobbyUsers))
+      });
+    }
+  }, [allUsersFetchSwitch])
+
+  // does the actual re-fetching of the lobby users triggered by state update of fetchSwitch
   useEffect(() => {
     // upon fetch notification do fetching
-    const fetchUsers = async () => {
+    const fetchLobbyUsers = async () => {
       try {
         const response = await api.get(`/lobbies/${thisLobby.id}`);
-        setUsers([...response.data.usersInLobby]);
-
+        setLobbyUsers([...response.data.usersInLobby]);
+        console.log({response: [...response.data.usersInLobby]})
         return response.data.usersInLobby;
 
       } catch (error) {
@@ -160,8 +217,8 @@ const LobbyPage = () => {
       }
     }
 
-    fetchUsers().then(newUsers => console.log({newUsers}));
-  }, [fetchSwitch]);
+    fetchLobbyUsers().then(newUsers => console.log({newUsers}));
+  }, [lobbyUsersFetchSwitch]);
 
 
 
@@ -169,10 +226,15 @@ const LobbyPage = () => {
       <BackgroundContainer>
         <LobbyWrapper>
 
-          <SearchBar
-              placeholder={'Search users...'}
-              id="lobbySearch"
-          />
+          {iAmCreator ? (
+              <LobbySearchbar
+                users={allUsers}
+                client={stompClient}
+                lobbyId={thisLobby.id}
+              />
+          ) : null }
+
+
 
           <PlayerWrapper>
             <PlayerHeader>
@@ -180,7 +242,7 @@ const LobbyPage = () => {
             </PlayerHeader>
             <PlayerListWrapper>
               <LobbyPlayerList
-                  users={users}
+                  users={lobbyUsers}
                   creator={thisLobby.creatorUsername}
                   permitted={iAmCreator}
                   lobbyId={thisLobby.id}
@@ -205,10 +267,12 @@ const LobbyPage = () => {
           <BackButton onClick={() => backToMenu()}>
             Back to Mainmenu
           </BackButton>
+          {iAmCreator ? (
+              <StartButton>
+                Start Game
+              </StartButton>
+          ) : null }
 
-          <StartButton disabled={!iAmCreator}>
-            Start Game
-          </StartButton>
 
         </LobbyWrapper>
       </BackgroundContainer>

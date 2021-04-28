@@ -14,7 +14,7 @@ class App extends Component {
       <div>
         <StompSessionProvider
             brokerURL={`${getWebsocketDomain()}/websocket`}
-            debug={STOMP => console.log({STOMP})}
+            /*debug={STOMP => console.log({STOMP})}*/
             onConnect={() => console.log({STOMP_CONNECT: 'TCP connection successfully established'})}
         >
           <AppRouter />

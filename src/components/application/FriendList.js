@@ -21,18 +21,18 @@ class FriendList extends React.Component {
     	this.setState({
       	friends: friends.data
     	});
-      await this.getCurrentFriendRequestList()
+      /*await this.getCurrentFriendRequestList()*/
     });
   }
 
-  async getCurrentFriendRequestList(){
+  /*async getCurrentFriendRequestList(){
     const response = await api.get('/friend_requests/' + this.state.user.id);
     this.fillFriendRequestList(response.data);
     this.startEventSource(this.state.user.id); 
   }
   
   async fillFriendRequestList(data){
-    console.log("fillFriendRequestList: " + data); 
+    console.log("fillFriendRequestList: " + data);
     var friend_requests = new Array();
     const len = data.length;
     for (var i = 0; i < len; i++) {
@@ -52,7 +52,7 @@ class FriendList extends React.Component {
     }); 
     this.eventSource.onmessage = e =>
       this.fillFriendRequestList(JSON.parse(e.data));
-  }
+  }*/
 
   async acceptFriendRequest(id) {
     const response = await api.post('/friend_requests/accept/' + id);
