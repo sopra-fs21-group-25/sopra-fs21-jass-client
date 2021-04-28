@@ -78,10 +78,8 @@ const LobbyJassTable = props => {
   }, [])
 
   const stompClient = props.client;
-  console.log(stompClient);
   useSubscription(`/lobbies/${props.lobbyId}/table`, message => {
     const body = JSON.parse(message.body);
-    console.log({body});
     setPlayerTop(body.playerTop);
     setPlayerBottom(body.playerBottom);
     setPlayerLeft(body.playerLeft);

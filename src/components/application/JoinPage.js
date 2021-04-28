@@ -53,7 +53,7 @@ const JoinPage = () => {
           setLobbies(fetchedLobbies);   // only refresh lobby-list if the has been changes
         }
       });
-    }, 10000) // refresh lobbies every 10 seconds
+    }, 10000); // refresh lobbies every 10 seconds
 
     return () => clearInterval(interval); // clear interval on unmount
 
