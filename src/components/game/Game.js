@@ -36,6 +36,17 @@ const Container = styled(BaseContainer)`
   text-align: center;
 `;
 
+const CurrentModeContainer = styled(BaseContainer)`
+  position: absolute;
+  width: 100px;
+  height: 200px;
+  right: 50px,
+  top: 20px,
+  background-color: white;
+  border-radius: 50%;
+  text-align: center;
+`;
+
 const Users = styled.ul`
   list-style: none;
   padding-left: 0;
@@ -48,19 +59,30 @@ const PlayerContainer = styled.li`
   justify-content: center;
 `;
 
+const Label = styled.label`
+  color: black;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+`;
+
 class Game extends React.Component {
-  constructor() {
-    super();
-    this.state = {
-      users: null, 
-      openModePopUp: false,
-      gameModes: [], 
-      currentPlayer: null,  
-      startOfRound: true, 
-      user: null, 
-      currentGameMode: {suit: null, value: null}, 
-      lobbyId: '7bef37a1-1b02-4671-b9df-22e4471311ee'
-    };
+  constructor(props) {
+    super(props);
+    // this.state = {
+    //   users: null, 
+    //   openModePopUp: false,
+    //   gameModes: [], 
+    //   currentPlayer: null,  
+    //   startOfRound: true, 
+    //   user: null, 
+    //   currentGameMode: {suit: null, value: null}, 
+    //   lobbyId: 'ff5a8b43-edce-4acd-9b17-cb670c853f91'
+    // };
+    this.state = this.props.location.state; 
+    this.state.startOfRound = true;
+    this.state.openModePopUp = false;
+    this.state.currentActingPlayer = null;
+    this.state.currentInGameMode = {text: "", value: ""};
     this.handleClickToOpen = this.handleClickToOpen.bind(this);
     this.handleToClose = this.handleToClose.bind(this);
     this.handleListItemClick = this.handleListItemClick.bind(this);
@@ -75,7 +97,7 @@ class Game extends React.Component {
   }
 
   handleListItemClick(value){
-    this.setState({openModePopUp: false});
+    this.setState({openModePopUp: false, currentInGameMode: value});
   };
 
   logout() {
@@ -87,16 +109,18 @@ class Game extends React.Component {
   startRoundPlayer(){
     if (this.state.startOfRound){
       this.handleClickToOpen();
+      this.setState({startOfRound: false});
     }
   }
 
-  async setGameModes(){
-    var ingameModes = this.state.gameModes; 
-    var response = await api.get(`/lobbies/${this.state.lobbyId}`);
-    for (var ingameMode in response.data.ingameModes){
+  setGameModes(){
+    var ingameModes_converted = []; 
+    //var response = await api.get(`/lobbies/${this.state.lobbyId}`);
+    var modes = this.state.ingameModes;
+    for (var ingameMode in modes){
       var mode = {}; 
-      mode.text = response.data.ingameModes[ingameMode].ingameMode + "        " + response.data.ingameModes[ingameMode].multiplicator; 
-      switch(response.data.ingameModes[ingameMode].ingameMode){
+      mode.text = modes[ingameMode].ingameMode + " " + modes[ingameMode].multiplicator; 
+      switch(modes[ingameMode].ingameMode){
         case "ACORN": 
           mode.value = acorn; 
           break;
@@ -125,18 +149,17 @@ class Game extends React.Component {
           mode.value = mary; 
           break;
       }
-      ingameModes.push(mode); 
+      ingameModes_converted.push(mode); 
     }
 
-    return ingameModes; 
+    return ingameModes_converted; 
   }
   async componentWillMount(){  
   }
 
   async componentDidMount() {
-    var modes_1 = [{text :'acorn', value: acorn}, {text: 'rose', value: rose}];
-    var modes = await this.setGameModes();
-    this.setState({gameModes: modes});
+    var modes = this.setGameModes();
+    this.setState({ingameModes: modes});
     this.setState({user: JSON.parse(localStorage.getItem('user'))}, async function () {
       this.startRoundPlayer();
     });
@@ -148,7 +171,7 @@ class Game extends React.Component {
         <Dialog open={this.state.openModePopUp} onClose={this.handleToClose}>
            <DialogTitle>{"Please choose in-game mode"}</DialogTitle>
            <List>
-             {this.state.gameModes.map((gameMode) => (
+             {this.state.ingameModes.map((gameMode) => (
                <ListItem button onClick={() => this.handleListItemClick(gameMode)} key={gameMode.text}>
                  <div><img src={gameMode.value} height={'30px'} width={'40px'} margin={'5px'}/></div>
                  <ListItemText primary={gameMode.text} />
@@ -158,6 +181,13 @@ class Game extends React.Component {
             </List>
           </Dialog>
           <InitDistribution />
+          <CurrentModeContainer>
+          <Label>
+              Current Mode: 
+              <div><img src={this.state.currentInGameMode.value} height={'30px'} width={'40px'} margin={'5px'}/></div>
+              <input disabled = "true" type="text" value={this.state.currentInGameMode.text} />
+          </Label>
+        </CurrentModeContainer>
       </BackgroundContainer>
     );
   }
