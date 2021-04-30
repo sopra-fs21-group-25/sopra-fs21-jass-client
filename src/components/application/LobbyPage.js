@@ -127,7 +127,13 @@ const LobbyPage = () => {
     }
   }
 
-
+  const createGame = async () => {
+    const response = await api.get(`/lobbies/${thisLobby.id}`);
+    history.push({
+      pathname: `/game/${thisLobby.id}`,
+      state: {...response.data}
+    });
+  }
   // if I got kicked from the lobby...
   useSubscription(`/lobbies/${thisLobby.id}/kicked/${myUsername}`, () => backToMenu());
 
@@ -268,7 +274,7 @@ const LobbyPage = () => {
             Back to Mainmenu
           </BackButton>
           {iAmCreator ? (
-              <StartButton>
+              <StartButton onClick={() => createGame()}>
                 Start Game
               </StartButton>
           ) : null }
