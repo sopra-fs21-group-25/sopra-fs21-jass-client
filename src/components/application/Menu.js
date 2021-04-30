@@ -113,7 +113,7 @@ class Menu extends React.Component {
   }
 
   async componentDidMount() {
-    this.setState({user: JSON.parse(localStorage.getItem('user'))}, async function () {
+    this.setState({user: JSON.parse(sessionStorage.getItem('user'))}, async function () {
       const response = await api.get('/availableusers/' + this.state.user.id);
       this.setState({
         users: response.data

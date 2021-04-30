@@ -106,6 +106,8 @@ class Register extends React.Component {
                 localStorage.setItem('token', user.token);
                 localStorage.setItem('user', JSON.stringify(user));
 
+                sessionStorage.setItem('user', JSON.stringify(user));
+
                 // Login successfully worked --> navigate to the route /game in the UsersOverviewRouter
                 this.props.history.push(`/menu`);
             } else if (response.status === 409) {

@@ -55,26 +55,26 @@ const LobbyJassTable = props => {
   const [playerLeft, setPlayerLeft] = useState('');
   const [playerRight, setPlayerRight] = useState('');
   const [myPosition, setMyPosition] = useState(null);
-  const myUsername = JSON.parse(localStorage.getItem('user')).username;
+  const myUsername = JSON.parse(sessionStorage.getItem('user')).username;
 
   useEffect(() => {
-    localStorage.setItem('topPlayer', playerTop);
+    sessionStorage.setItem('topPlayer', playerTop);
   }, [playerTop])
   useEffect(() => {
-    localStorage.setItem('bottomPlayer', playerBottom);
+    sessionStorage.setItem('bottomPlayer', playerBottom);
   }, [playerBottom])
   useEffect(() => {
-    localStorage.setItem('leftPlayer', playerLeft);
+    sessionStorage.setItem('leftPlayer', playerLeft);
   }, [playerLeft])
   useEffect(() => {
-    localStorage.setItem('rightPlayer', playerRight);
+    sessionStorage.setItem('rightPlayer', playerRight);
   }, [playerRight])
 
   useEffect(() => {
-    setPlayerTop(localStorage.getItem('topPlayer'));
-    setPlayerBottom(localStorage.getItem('bottomPlayer'));
-    setPlayerLeft(localStorage.getItem('leftPlayer'));
-    setPlayerRight(localStorage.getItem('rightPlayer'));
+    setPlayerTop(sessionStorage.getItem('topPlayer'));
+    setPlayerBottom(sessionStorage.getItem('bottomPlayer'));
+    setPlayerLeft(sessionStorage.getItem('leftPlayer'));
+    setPlayerRight(sessionStorage.getItem('rightPlayer'));
   }, [])
 
   const stompClient = props.client;
