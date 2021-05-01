@@ -59,7 +59,7 @@ class Game extends React.Component {
       startOfRound: true, 
       user: null, 
       currentGameMode: {suit: null, value: null}, 
-      lobbyId: '7bef37a1-1b02-4671-b9df-22e4471311ee'
+      lobbyId: 'ac0735eb-b60d-44f8-b02a-0a4878659b92'
     };
     this.handleClickToOpen = this.handleClickToOpen.bind(this);
     this.handleToClose = this.handleToClose.bind(this);
@@ -129,8 +129,6 @@ class Game extends React.Component {
     }
 
     return ingameModes; 
-  }
-  async componentWillMount(){  
   }
 
   async componentDidMount() {
