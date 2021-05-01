@@ -170,8 +170,13 @@ const Game = (props) => {
     }
   }
 
-  const updateGameState = (gameState) => {
-    // logic for updating gameState
+  const updateGameState = async (playedCard) => {
+    const payload = JSON.stringify({userId: myId, playedCard: playedCard});
+    const request = await api.put(`/games/${gameState.id}`, payload);
+    stompClient.publish({
+      destination: `/games/${gameState.id}/fetch`,
+      body: null,
+    });
   }
 
   const setGameModes = () => {
@@ -226,15 +231,22 @@ const Game = (props) => {
         <Dialog open={openModePopUp} onClose={handleToClose}>
            <DialogTitle>{"Please choose in-game mode"}</DialogTitle>
            <List>
-             {ingameModes.map((gameMode) => (
-               <ListItem key={gameMode.text} button onClick={() => handleListItemClick(gameMode)} key={gameMode.text}>
+             {ingameModes.map((gameMode, index) => (
+               <ListItem key={index} button onClick={() => handleListItemClick(gameMode)}>
                  <div><img src={gameMode.value} height={'30px'} width={'40px'} margin={'5px'}/></div>
                  <ListItemText primary={gameMode.text} />
                </ListItem>
              ))}
             </List>
           </Dialog>
-          <InitDistribution gameState={gameState} updateGameState={updateGameState}/>
+          {myIndex
+            ? <InitDistribution 
+                gameState={gameState} 
+                updateGameState={updateGameState}
+                myIndex={myIndex}
+              />
+            : <></>
+          }
           <CurrentModeContainer>
           <Label>
               Current Mode: 

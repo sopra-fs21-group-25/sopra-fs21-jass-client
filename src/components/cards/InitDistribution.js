@@ -6,7 +6,7 @@ import './css/init.css';
 
 
 const parseCardToImageString = card => {
-  let result;
+  let result = '';
 
   switch(card.rank) {
     case 'SIX': {
@@ -45,9 +45,8 @@ const parseCardToImageString = card => {
       result = 'as';
       break;
     };
-
-    return result.concat(`${card.suit.toLowerCase()}s`)
   }
+  return result.concat(`${card.suit.toLowerCase()}s`)
 }
 
 
@@ -55,7 +54,6 @@ class InitDistribution extends Component {
   constructor(props) {
     super(props);
     this.used = {};
-    this.allCards = this.randomHand(36);
 
     this.state = {
       currentPlayerSit: null,
@@ -66,12 +64,15 @@ class InitDistribution extends Component {
         playerD: "flipped",
       },
       hands: {
-        playerA: this.fun(props.gameState.cardsOfPlayer), 
+        playerA: this.props.gameState.cardsOfPlayer.map(x => parseCardToImageString(x)), 
         playerB: Array(9).fill('flipped'), 
         playerC: Array(9).fill('flipped'), 
         playerD: Array(9).fill('flipped'),
       },
-      gameState: props.gameState,
+      gameState: this.props.gameState,
+      cardsMapping: Object.fromEntries(this.props.gameState.cardsOfPlayer.map(x => [parseCardToImageString(x), x])),
+      myTurn: false,
+      myIndex: this.props.myIndex,
       prevProps: {},
     };
 
@@ -85,15 +86,44 @@ class InitDistribution extends Component {
 
   static getDerivedStateFromProps(props, state) {
     const { prevProps } = state;
-    if (prevProps.gameState !== props.gameState) {
+    if (prevProps.gameState !== props.gameState || prevProps.myIndex !== props.myIndex) {
       return {
         gameState: props.gameState,
+        myIndex: props.myIndex,
         prevProps: props
       }
     }
     return {
         prevProps: props
     }
+  }
+
+  componentDidMount() {
+    if (this.state.gameState.cardsPlayed[(this.state.myIndex + 3) % 4] || this.state.gameState.playerStartsTrick[this.state.myIndex]) {
+      this.setState({myTurn: true});
+    }
+
+    this.setState({
+      currentlyInPlay: {
+        playerA: this.state.gameState.cardsPlayed[this.state.myIndex] ? parseCardToImageString(this.state.gameState.cardsPlayed[this.state.myIndex]) : 'flipped', 
+        playerB: this.state.gameState.cardsPlayed[(this.state.myIndex + 1) % 4] ? parseCardToImageString(this.state.gameState.cardsPlayed[(this.state.myIndex + 1) % 4]) : 'flipped', 
+        playerC: this.state.gameState.cardsPlayed[(this.state.myIndex + 2) % 4] ? parseCardToImageString(this.state.gameState.cardsPlayed[(this.state.myIndex + 2) % 4]) : 'flipped', 
+        playerD: this.state.gameState.cardsPlayed[(this.state.myIndex + 3) % 4] ? parseCardToImageString(this.state.gameState.cardsPlayed[(this.state.myIndex + 3) % 4]) : 'flipped',
+      }
+    }, () => {
+      if (this.state.currentlyInPlay.playerA != 'flipped') {
+        this.refASpot.current.style.display = "flex";
+      }
+      if (this.state.currentlyInPlay.playerB != 'flipped') {
+        this.refBSpot.current.style.display = "flex";
+      }
+      if (this.state.currentlyInPlay.playerC != 'flipped') {
+        this.refCSpot.current.style.display = "flex";
+      }
+      if (this.state.currentlyInPlay.playerC != 'flipped') {
+        this.refCSpot.current.style.display = "flex";
+      }
+    });
   }
 
   getPlayAreaBounds = () => {
@@ -111,17 +141,19 @@ class InitDistribution extends Component {
     this.setState({
       currentlyInPlay: {
         playerA: key, 
-        playerB: this.state.currentlyInPlay.playerB, 
-        playerC: this.state.currentlyInPlay.playerC, 
-        playerD: this.state.currentlyInPlay.playerD,
+        playerB: this.state.gameState.cardsPlayed[(this.state.myIndex + 1) % 4] ? parseCardToImageString(this.state.gameState.cardsPlayed[(this.state.myIndex + 1) % 4]) : 'flipped', 
+        playerC: this.state.gameState.cardsPlayed[(this.state.myIndex + 2) % 4] ? parseCardToImageString(this.state.gameState.cardsPlayed[(this.state.myIndex + 2) % 4]) : 'flipped', 
+        playerD: this.state.gameState.cardsPlayed[(this.state.myIndex + 3) % 4] ? parseCardToImageString(this.state.gameState.cardsPlayed[(this.state.myIndex + 3) % 4]) : 'flipped',
       },
       hands: {
         playerA: current_cards, 
         playerB: this.state.hands.playerB, 
         playerC: this.state.hands.playerC, 
         playerD: this.state.hands.playerD,
-      }
+      },
+      myTurn: false,
     });
+    this.props.updateGameState(this.state.cardsMapping[key]);
   }
 
   render() {
@@ -129,7 +161,8 @@ class InitDistribution extends Component {
         <div className="initContainer">
           <div className="playerA">
             <Hand 
-              hide={false} 
+              hide={false}
+              disabled={!this.state.myTurn}
               layout={"spread"} 
               playArea={this.getPlayAreaBounds}
               handlePlacingCard={this.handlePlacingCard.bind(this)} 

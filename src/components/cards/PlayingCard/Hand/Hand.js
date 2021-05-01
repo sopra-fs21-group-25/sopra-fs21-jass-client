@@ -182,7 +182,7 @@ class Hand extends Component {
               this.state.cards.map((card, index) => {
                   return (
                       <PlayingCard
-                        key={card}
+                        key={card == 'flipped' ? card + index : card}
                         onDragStart={this.onDragStart.bind(this)}
                         onDragStop={this.onDragStop.bind(this)}
                         onDrag={this.onDrag.bind(this)}
