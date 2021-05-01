@@ -27,10 +27,7 @@ import obenabe from "../../views/images/icons/obenabe.png";
 import slalom from "../../views/images/icons/slalom.png";
 import gusti from "../../views/images/icons/gusti.png";
 import mary from "../../views/images/icons/mary.png";
-import ModalHeader from 'react-bootstrap/esm/ModalHeader';
 
-import SockJS from "sockjs-client"
-import * as Stomp from 'stompjs';
 
 import React, {useEffect, useState} from 'react';
 import {useHistory, useLocation} from "react-router-dom";
@@ -73,18 +70,45 @@ const Label = styled.label`
 `;
 
 const Game = (props) => {
-    const [gameState, setGameState] = useState(useLocation().state); //remove
-    const locationState = useLocation().state; 
-    const [ingameModes, setIngameModes] = useState(useLocation().state.ingameModes); 
-    const [startOfRound, setStartOfRound] = useState(true);
-    const [openModePopUp, setOpenModePopUp] = useState(false);
-    const [currentActingPlayer, setCurrentActingPlayer] = useState(useLocation().state.idOfRoundStartingPlayer);
-    const [currentInGameMode, setCurrentInGameMode] = useState({text: "", value: ""});
-    const user = JSON.parse(sessionStorage.getItem('user'));
-    const stompClient = useStompClient();
-    const history = useHistory(); 
+  const [gameState, setGameState] = useState(useLocation().state); //remove
+  const locationState = useLocation().state; 
+  const [ingameModes, setIngameModes] = useState(useLocation().state.ingameModes); 
+  const [startOfRound, setStartOfRound] = useState(true);
+  const [openModePopUp, setOpenModePopUp] = useState(false);
+  const [currentActingPlayer, setCurrentActingPlayer] = useState(useLocation().state.idOfRoundStartingPlayer);
+  const [currentInGameMode, setCurrentInGameMode] = useState({text: "", value: ""});
+  const user = JSON.parse(sessionStorage.getItem('user'));
+  const stompClient = useStompClient();
+  const history = useHistory(); 
 
-  useEffect(() => console.log(locationState), [])
+  const myId = JSON.parse(sessionStorage.getItem('user')).id;
+  const player0id = useLocation().state.player0id;
+  const player1id = useLocation().state.player1id;
+  const player2id = useLocation().state.player2id;
+  const player3id = useLocation().state.player3id;
+  const [myIndex, setMyIndex] = useState(null);
+
+  useEffect(() => {
+    switch(myId) {
+      case player0id: {
+        setMyIndex(0);
+        break;
+      };
+      case player1id: {
+        setMyIndex(1);
+        break;
+      };
+      case player2id: {
+        setMyIndex(2);
+        break;
+      };
+      case player3id: {
+        setMyIndex(3);
+        break;
+      }
+    }
+  }, [])
+
   // connect() {
   //   var socket = new SockJS('/games');
   //   this.stompClient = Stomp.over(socket);
@@ -137,6 +161,8 @@ const Game = (props) => {
     history.push('/login');
   }
 
+
+
   const startRoundPlayer = () => {
     if (startOfRound && (JSON.parse(sessionStorage.getItem('user')).id === currentActingPlayer)){
       handleClickToOpen();
@@ -150,7 +176,6 @@ const Game = (props) => {
 
   const setGameModes = () => {
     var ingameModes_converted = []; 
-    //var response = await api.get(`/lobbies/${this.state.lobbyId}`);
     var modes = ingameModes;
     for (var ingameMode in modes){
       var mode = {}; 
@@ -192,7 +217,7 @@ const Game = (props) => {
 
   useEffect(() => {
     var modes = setGameModes();
-    setIngameModes (modes);
+    setIngameModes(modes);
     startRoundPlayer();
   }, [])
 
@@ -202,10 +227,9 @@ const Game = (props) => {
            <DialogTitle>{"Please choose in-game mode"}</DialogTitle>
            <List>
              {ingameModes.map((gameMode) => (
-               <ListItem button onClick={() => handleListItemClick(gameMode)} key={gameMode.text}>
+               <ListItem key={gameMode.text} button onClick={() => handleListItemClick(gameMode)} key={gameMode.text}>
                  <div><img src={gameMode.value} height={'30px'} width={'40px'} margin={'5px'}/></div>
                  <ListItemText primary={gameMode.text} />
-
                </ListItem>
              ))}
             </List>
@@ -215,7 +239,7 @@ const Game = (props) => {
           <Label>
               Current Mode: 
               <div><img src={currentInGameMode.value} height={'30px'} width={'40px'} margin={'5px'}/></div>
-              <input disabled = "true" type="text" value={currentInGameMode.text} />
+              <input disabled={true} type={"text"} value={currentInGameMode.text} />
           </Label>
         </CurrentModeContainer>
       </BackgroundContainer>

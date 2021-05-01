@@ -2,8 +2,54 @@ import React, { Component } from 'react';
 import PlayingCardsList from "./PlayingCard/Hand/PlayingCard/PlayingCardsList";
 import Hand from "./PlayingCard/Hand/Hand";
 import PlayingCard from "./PlayingCard/Hand/PlayingCard/PlayingCard";
-
 import './css/init.css';
+
+
+const parseCardToImageString = card => {
+  let result;
+
+  switch(card.rank) {
+    case 'SIX': {
+      result = '6';
+      break;
+    };
+    case 'SEVEN': {
+      result = '7';
+      break;
+    };
+    case 'EIGHT': {
+      result = '8';
+      break;
+    };
+    case 'NINE': {
+      result = '9';
+      break;
+    };
+    case 'TEN': {
+      result = 'banner';
+      break;
+    };
+    case 'UNDER': {
+      result = 'under';
+      break;
+    };
+    case 'OBER': {
+      result = 'ober';
+      break;
+    };
+    case 'KING': {
+      result = 'konig';
+      break;
+    };
+    case 'ACE': {
+      result = 'as';
+      break;
+    };
+
+    return result.concat(`${card.suit.toLowerCase()}s`)
+  }
+}
+
 
 class InitDistribution extends Component {
   constructor(props) {
