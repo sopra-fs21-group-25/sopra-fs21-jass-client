@@ -69,17 +69,17 @@ const Label = styled.label`
 `;
 
 const Game = (props) => {
-  const gameId = useLocation().state.id; 
+  const gameId = useLocation().state.id;
   const [gameState, setGameState] = useState(useLocation().state); //remove
-  const locationState = useLocation().state; 
-  const [ingameModes, setIngameModes] = useState(useLocation().state.ingameModes); 
+  const locationState = useLocation().state;
+  const [ingameModes, setIngameModes] = useState(useLocation().state.ingameModes);
   const [startOfRound, setStartOfRound] = useState(true);
   const [openModePopUp, setOpenModePopUp] = useState(false);
   const [currentActingPlayer, setCurrentActingPlayer] = useState(useLocation().state.idOfRoundStartingPlayer);
   const [currentInGameMode, setCurrentInGameMode] = useState({text: "", value: ""});
   const user = JSON.parse(sessionStorage.getItem('user'));
   const stompClient = useStompClient();
-  const history = useHistory(); 
+  const history = useHistory();
 
   const myId = JSON.parse(sessionStorage.getItem('user')).id;
   const player0id = useLocation().state.player0id;
@@ -105,13 +105,15 @@ const Game = (props) => {
       case player3id: {
         setMyIndex(3);
         break;
-      }
+      };
     }
   }, []);
 
-  const endRound = () => {
-    setStartOfRound(true); 
-  };
+
+
+
+
+
 
   const handleClickToOpen = () => {
     setOpenModePopUp(true);
@@ -124,13 +126,13 @@ const Game = (props) => {
   const handleListItemClick = async (value) => {
     setOpenModePopUp(false);
     setCurrentInGameMode(value);
-    var requestBody = {}; 
-    requestBody.ingameMode = value.text.substring(0, value.text.indexOf(" ")); 
-    requestBody.userId = user.id; 
+    var requestBody = {};
+    requestBody.ingameMode = value.text.substring(0, value.text.indexOf(" "));
+    requestBody.userId = user.id;
     console.log(requestBody);
     var response = await api.put(`/games/${gameId}`, JSON.stringify(requestBody));
     stompClient.publish({
-      destination: `/app/games/${gameId}/fetch`, 
+      destination: `/app/games/${gameId}/fetch`,
       body: null
     });
   };
@@ -203,13 +205,13 @@ const Game = (props) => {
         var mode = modes.find((element, index, array) => {
           return element.text.includes(response.data.currentIngameMode);
         });
-        setCurrentInGameMode(mode); 
+        setCurrentInGameMode(mode);
     }
     setCurrentActingPlayer(response.data.idOfRoundStartingPlayer)
     var trickToPlay = response.data.trickToPlay;
-    var hasTrickStarted = response.data.hasTrickStarted; 
+    var hasTrickStarted = response.data.hasTrickStarted;
     if ((trickToPlay == 0) && (!hasTrickStarted)){
-      setStartOfRound(true); 
+      setStartOfRound(true);
       startRoundPlayer();
     } else {
       setStartOfRound(false);
@@ -219,13 +221,13 @@ const Game = (props) => {
   useEffect(async () => {
     var modes = setGameModes();
     setIngameModes(modes);
-    await setAttrValues(modes); 
+    await setAttrValues(modes);
   }, []);
 
   useSubscription(`/games/${gameId}/fetch`, async msg => {
-    await setAttrValues(ingameModes); 
+    await setAttrValues(ingameModes);
   });
-  
+
     return (
       <BackgroundContainer>
         <Dialog open={openModePopUp} onClose={handleToClose}>

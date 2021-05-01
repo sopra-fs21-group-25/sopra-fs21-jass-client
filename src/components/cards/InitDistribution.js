@@ -45,10 +45,10 @@ const parseCardToImageString = card => {
       result = 'as';
       break;
     };
+  };
 
-    return result.concat(`${card.suit.toLowerCase()}s`)
-  }
-}
+  return result.concat(`${card.suit.toLowerCase()}s`)
+};
 
 
 class InitDistribution extends Component {
