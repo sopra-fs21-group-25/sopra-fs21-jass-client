@@ -73,6 +73,7 @@ const Label = styled.label`
 `;
 
 const Game = (props) => {
+    const [gameState, setGameState] = useState(useLocation().state); //remove
     const locationState = useLocation().state; 
     const [ingameModes, setIngameModes] = useState(useLocation().state.ingameModes); 
     const [startOfRound, setStartOfRound] = useState(true);
@@ -143,6 +144,10 @@ const Game = (props) => {
     }
   }
 
+  const updateGameState = (gameState) => {
+    // logic for updating gameState
+  }
+
   const setGameModes = () => {
     var ingameModes_converted = []; 
     //var response = await api.get(`/lobbies/${this.state.lobbyId}`);
@@ -205,7 +210,7 @@ const Game = (props) => {
              ))}
             </List>
           </Dialog>
-          <InitDistribution />
+          <InitDistribution gameState={gameState} updateGameState={updateGameState}/>
           <CurrentModeContainer>
           <Label>
               Current Mode: 

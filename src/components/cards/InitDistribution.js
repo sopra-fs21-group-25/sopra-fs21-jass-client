@@ -6,12 +6,13 @@ import PlayingCard from "./PlayingCard/Hand/PlayingCard/PlayingCard";
 import './css/init.css';
 
 class InitDistribution extends Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     this.used = {};
     this.allCards = this.randomHand(36);
 
     this.state = {
+      currentPlayerSit: null,
       currentlyInPlay : {
         playerA: "flipped", 
         playerB: "flipped", 
@@ -19,11 +20,13 @@ class InitDistribution extends Component {
         playerD: "flipped",
       },
       hands: {
-        playerA: this.allCards.slice(0, 9), 
-        playerB: this.allCards.slice(9, 18), 
-        playerC: this.allCards.slice(18, 27), 
-        playerD: this.allCards.slice(27, 36),
-      }
+        playerA: this.fun(props.gameState.cardsOfPlayer), 
+        playerB: Array(9).fill('flipped'), 
+        playerC: Array(9).fill('flipped'), 
+        playerD: Array(9).fill('flipped'),
+      },
+      gameState: props.gameState,
+      prevProps: {},
     };
 
     this.refPlayArea = React.createRef();
@@ -34,23 +37,18 @@ class InitDistribution extends Component {
     this.getPlayAreaBounds = this.getPlayAreaBounds.bind(this);
   }
 
-  randomHand = (size) => {
-    var cardList = Object.keys(PlayingCardsList);
-    var hand = [];
-    var used = this.used;
-    for(var i = 0; i < size; i++) {
-      var card = Math.floor(Math.random()*Object.keys(PlayingCardsList).length);
-      // console.log("card: ", card);
-      while(used[card] || cardList[card] == 'flipped') {
-        card = Math.floor(Math.random()*Object.keys(PlayingCardsList).length);
+  static getDerivedStateFromProps(props, state) {
+    const { prevProps } = state;
+    if (prevProps.gameState !== props.gameState) {
+      return {
+        gameState: props.gameState,
+        prevProps: props
       }
-      used[card] =  true;
-      hand.push(cardList[card]);
     }
-    this.used = used;
-
-    return hand;
-  };
+    return {
+        prevProps: props
+    }
+  }
 
   getPlayAreaBounds = () => {
     const playArea = this.refPlayArea.current;
