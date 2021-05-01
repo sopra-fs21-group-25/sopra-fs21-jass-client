@@ -16,7 +16,6 @@ class PlayingCard extends Component {
       flippable : this.props.flippable,
       disabled: this.props.disabled,
       playArea: this.props.playArea,
-      elevated : this.props.elevated,
       style : this.props.style,
       position : {x : 0, y : 0},
       draggableDivStyle : {"zIndex": this.props.zIndex},
@@ -27,7 +26,7 @@ class PlayingCard extends Component {
 
   static getDerivedStateFromProps(props, state) {
     const { prevProps } = state;
-    if (prevProps.flipped !== props.flipped || prevProps.card !== props.card || prevProps.height !== props.height || prevProps.flippable !== props.flippable || prevProps.disabled !== props.disabled || prevProps.elevated !== props.elevated || prevProps.style !== props.style || prevProps.position !== props.position || prevProps.draggableDivStyle !== props.draggableDivStyle || prevProps.playArea !== props.playArea) {
+    if (prevProps.flipped !== props.flipped || prevProps.card !== props.card || prevProps.height !== props.height || prevProps.flippable !== props.flippable || prevProps.disabled !== props.disabled || prevProps.style !== props.style || prevProps.position !== props.position || prevProps.draggableDivStyle !== props.draggableDivStyle || prevProps.playArea !== props.playArea) {
       return {
         flipped : props.flipped || props.card === 'hide',
         card : props.card,
@@ -35,7 +34,6 @@ class PlayingCard extends Component {
         flippable : props.flippable,
         disabled: props.disabled,
         playArea: props.playArea,
-        elevated : props.elevated,
         style : props.style,
         position : props.position, //{x : 0, y : 0},
         draggableDivStyle : {"zIndex": props.zIndex},
@@ -47,45 +45,25 @@ class PlayingCard extends Component {
     }
   }
 
-  elevate(percent){
-    // console.log(this.state);
-    if(this.state.elevated) percent = -percent;
-    let style = this.state.style;
-    let translateY = style.transform.match(/translateY\((.*?)\)/); //pull out translateY
-    if(translateY){
-      let newTranslateY = Number(translateY[1].slice(0, -1)) - percent; //add 50%
-      style.transform = style.transform.replace(/translateY(.*)/, `translateY(${newTranslateY}%)`)
-    } else {
-      style.transform += `\ntranslateY(${-percent}%)`
-    }
-    this.setState({style : style,
-                   elevated : !this.state.elevated})
-  }
-
   onClick(){
     this.props.onClick(this.props.card);
-    // console.log('position: ', )
   }
 
   onDragStart(e) {
-    this.state.draggableDivStyle = {"zIndex":"999", "position" : "fixed"}
+    console.log(this.state.style);
+    this.state.draggableDivStyle = {"zIndex" : "999", "position" : "fixed"}
 
     e.preventDefault(); //fixes desktop drag image issue
 
-    // console.log('style: ', this.state.style);
     if(this.state.style && this.state.style.transform) {
         if(this.state.style.transform.indexOf('rotate') !== -1) {
-            // console.log('derotating');
             let transform = this.state.style.transform.slice(0, -1); //copy it
             this.state.style.transform = transform.replace(/rotate(.*)/, 'rotate(0)');
             this.setState(this.state);
         }
-        // console.log('************ transforming');
-        // let newStyle = {transform :  this.state.style.transform.replace(/rotate(.*)/, 'rotate(0)')};
         this.props.removeCard(this.state.card, this.state.style);
     }
     this.props.onDragStart(this.state.card);
-    // console.log('start');
   }
 
   onDrag() {
@@ -110,6 +88,8 @@ class PlayingCard extends Component {
   onDrop = (e) => {
     if (this.overlaps(this.getBounds(e), this.state.playArea())) {
       console.log("Overlap!");
+      this.props.handlePlacingCard(this.state.card);
+      // this.setState({draggableDivStyle: {display: 'none'}});
     } else {
       console.log("No overlap!")
       this.state.draggableDivStyle = {"zIndex" : this.props.zIndex, "position" : "fixed"};
@@ -138,7 +118,6 @@ class PlayingCard extends Component {
               className='Playing-card'
               src={this.state.flipped === true ? PlayingCardsList.flipped : PlayingCardsList[this.state.card]}
               alt={this.state.flipped === true ? 'Hidden Card' : PlayingCardsList[this.state.card]}
-              // onClick={this.props.elevateOnClick ? () => this.elevate(this.props.elevateOnClick) : null}
               onClick={this.onClick.bind(this)}
             />
           </div>
@@ -146,10 +125,5 @@ class PlayingCard extends Component {
       );
     }
   }
-/*this.state.flippable ? ()=> {
-            this.setState({flipped:this.state.flipped === true ? false : true,
-              height: this.state.height,
-              card: this.state.card});
-          } : null*/
 
 export default PlayingCard;

@@ -79,11 +79,12 @@ div.playerD > div {
 .actionChildContainer {
 	margin: auto;
     position: relative;
-    width: 40%;
-    padding-bottom: 40%;
+    --width: 30em;
+    width: var(--width);
+    height: var(--width);
 	background-repeat: no-repeat;
   	background-position: center;
-  	background-size: auto 90%;
+  	background-size: auto 100%;
 	background-image: url("../../../views/images/interfaceImages/jass_table.png");
 	display: grid;
 	grid-template-columns: 1fr 1fr 1fr;
@@ -95,8 +96,8 @@ div.playerD > div {
   	grid-column-end: 2;
   	grid-row-start: 3;
   	grid-row-end: 3;
-  	background-color: black;
-
+ 	justify-content: center;
+ 	display: none;
 }
 
 .playerBcardSpot {
@@ -104,7 +105,17 @@ div.playerD > div {
   	grid-column-end: 1;
   	grid-row-start: 2;
   	grid-row-end: 2;
-  	background-color: green;
+ 	justify-content: flex-end;
+ 	align-items: center;
+ 	display: flex;
+}
+
+div.playerBcardSpot > div {
+	-webkit-transform: rotate(90deg);
+    -moz-transform: rotate(90deg);
+    -o-transform: rotate(90deg);
+    -ms-transform: rotate(90deg);
+	transform: rotate(90deg) !important;
 }
 
 .playerCcardSpot {
@@ -112,7 +123,13 @@ div.playerD > div {
   	grid-column-end: 2;
   	grid-row-start: 1;
   	grid-row-end: 1;
-  	background-color: yellow;
+ 	flex-direction: column;
+ 	display: flex;
+ 	text-align: center;
+}
+
+div.playerCcardSpot > div {
+	margin-top: auto;
 }
 
 .playerDcardSpot {
@@ -120,5 +137,16 @@ div.playerD > div {
   	grid-column-end: 3;
   	grid-row-start: 2;
   	grid-row-end: 2;
-  	background-color: red;
+ 	justify-content: flex-start;
+ 	align-items: center;
+ 	display: flex;
 }
+
+div.playerDcardSpot > div {
+	-webkit-transform: rotate(90deg);
+    -moz-transform: rotate(90deg);
+    -o-transform: rotate(90deg);
+    -ms-transform: rotate(90deg);
+	transform: rotate(90deg) !important;
+}
+

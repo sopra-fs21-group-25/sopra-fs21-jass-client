@@ -1,7 +1,7 @@
 import React from 'react';
 import {withRouter} from "react-router-dom";
 import {BackgroundContainer, JassboardContainer, TextContainer, InnerContainer, Container, CheckboxContainerColumn, CheckboxContainerRow} from "../../helpers/layout";
-
+import styled from "styled-components";
 import Dialog from "@material-ui/core/Dialog";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
@@ -13,6 +13,7 @@ import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemAvatar from '@material-ui/core/ListItemAvatar';
 import ListItemText from '@material-ui/core/ListItemText';
+import {GameTable} from './assets/GameAssets';
 
 import acorn from "../../views/images/icons/acorn.png";
 import rose from "../../views/images/icons/rose.png";
@@ -23,6 +24,7 @@ import obenabe from "../../views/images/icons/obenabe.png";
 import slalom from "../../views/images/icons/slalom.png";
 import gusti from "../../views/images/icons/gusti.png";
 import mary from "../../views/images/icons/mary.png";
+import Game from "../game/Game";
 
 const optionsIngameModes = [
   { value: 'acorn', label: <div><img src={acorn} height={'20px'} width={'20px'} margin={'5px'}/>Acorn</div> },
@@ -80,6 +82,7 @@ class GameTestPage extends React.Component {
           ))}
         </List>
       </Dialog>
+      <GameTable/>
     </div>
     )
   }

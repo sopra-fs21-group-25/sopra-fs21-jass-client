@@ -69,7 +69,6 @@ const Label = styled.label`
 `;
 
 class Game extends React.Component {
-
   constructor(props) {
     super(props);
     // this.state = {
@@ -194,8 +193,6 @@ class Game extends React.Component {
     }
 
     return ingameModes_converted; 
-  }
-  async componentWillMount(){  
   }
 
   async componentDidMount() {
