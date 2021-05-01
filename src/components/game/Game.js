@@ -27,10 +27,7 @@ import obenabe from "../../views/images/icons/obenabe.png";
 import slalom from "../../views/images/icons/slalom.png";
 import gusti from "../../views/images/icons/gusti.png";
 import mary from "../../views/images/icons/mary.png";
-import ModalHeader from 'react-bootstrap/esm/ModalHeader';
 
-import SockJS from "sockjs-client"
-import * as Stomp from 'stompjs';
 
 import React, {useEffect, useState} from 'react';
 import {useHistory, useLocation} from "react-router-dom";
@@ -73,17 +70,145 @@ const Label = styled.label`
 `;
 
 const Game = (props) => {
-    const locationState = useLocation().state; 
-    const [ingameModes, setIngameModes] = useState(useLocation().state.ingameModes); 
-    const [startOfRound, setStartOfRound] = useState(true);
-    const [openModePopUp, setOpenModePopUp] = useState(false);
-    const [currentActingPlayer, setCurrentActingPlayer] = useState(useLocation().state.idOfRoundStartingPlayer);
-    const [currentInGameMode, setCurrentInGameMode] = useState({text: "", value: ""});
-    const user = JSON.parse(sessionStorage.getItem('user'));
-    const stompClient = useStompClient();
-    const history = useHistory(); 
+  const dummyGame = JSON.parse({
+      "id": "723379bb-b79f-455c-b489-ca05b9c08c28",
+      "player0id": "7ed67864-91d8-4ddb-902a-4cf146135e48",
+      "player1id": "c7b4b8af-66eb-4194-be32-523e500245d0",
+      "player2id": "6a744346-d20a-4e2b-82b2-ae8985f0ddb2",
+      "player3id": "5fb2010f-a6cd-47c3-9467-955b3a65ff94",
+      "pointsToWin": 2500,
+      "ingameModes": [
+        {
+          "ingameMode": "ACORN",
+          "multiplicator": 1
+        },
+        {
+          "ingameMode": "ROSE",
+          "multiplicator": 1
+        },
+        {
+          "ingameMode": "BELL",
+          "multiplicator": 1
+        },
+        {
+          "ingameMode": "SHIELD",
+          "multiplicator": 1
+        },
+        {
+          "ingameMode": "UNDENUFE",
+          "multiplicator": 1
+        },
+        {
+          "ingameMode": "OBENABE",
+          "multiplicator": 1
+        }
+      ],
+      "weisAllowed": false,
+      "crossWeisAllowed": false,
+      "weisAsk": null,
+      "pointsTeam0_2": 0,
+      "pointsTeam1_3": 0,
+      "trickToPlay": 0,
+      "playerStartsTrick": [
+        true,
+        false,
+        false,
+        false
+      ],
+      "cardsPlayed": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "hasTrickStarted": false,
+      "idOfRoundStartingPlayer": "7ed67864-91d8-4ddb-902a-4cf146135e48",
+      "currentIngameMode": null,
+      "cardsOfPlayer": [
+        {
+          "suit": "BELL",
+          "rank": "EIGHT",
+          "trumpf": false
+        },
+        {
+          "suit": "BELL",
+          "rank": "SEVEN",
+          "trumpf": false
+        },
+        {
+          "suit": "SHIELD",
+          "rank": "ACE",
+          "trumpf": false
+        },
+        {
+          "suit": "BELL",
+          "rank": "TEN",
+          "trumpf": false
+        },
+        {
+          "suit": "ACORN",
+          "rank": "SEVEN",
+          "trumpf": false
+        },
+        {
+          "suit": "SHIELD",
+          "rank": "NINE",
+          "trumpf": false
+        },
+        {
+          "suit": "ROSE",
+          "rank": "SEVEN",
+          "trumpf": false
+        },
+        {
+          "suit": "ROSE",
+          "rank": "TEN",
+          "trumpf": false
+        },
+        {
+          "suit": "BELL",
+          "rank": "UNDER",
+          "trumpf": false
+        }
+      ]
+    });
 
-  useEffect(() => console.log(locationState), [])
+  const myId = JSON.parse(sessionStorage.getItem('user')).id;
+  const player0id = useLocation().state.player0id;
+  const player1id = useLocation().state.player1id;
+  const player2id = useLocation().state.player2id;
+  const player3id = useLocation().state.player3id;
+  const [myIndex, setMyIndex] = useState(null);
+
+  const [ingameModes, setIngameModes] = useState(useLocation().state.ingameModes);
+  const [startOfRound, setStartOfRound] = useState(true);
+  const [openModePopUp, setOpenModePopUp] = useState(false);
+  const [currentActingPlayer, setCurrentActingPlayer] = useState(useLocation().state.idOfRoundStartingPlayer);
+  const [currentInGameMode, setCurrentInGameMode] = useState({text: "", value: ""});
+  const stompClient = useStompClient();
+  const history = useHistory();
+
+  useEffect(() => {
+    switch(myId) {
+      case player0id: {
+        setMyIndex(0);
+        break;
+      };
+      case player1id: {
+        setMyIndex(1);
+        break;
+      };
+      case player2id: {
+        setMyIndex(2);
+        break;
+      };
+      case player3id: {
+        setMyIndex(3);
+        break;
+      }
+    }
+  }, [])
+
   // connect() {
   //   var socket = new SockJS('/games');
   //   this.stompClient = Stomp.over(socket);
@@ -136,6 +261,8 @@ const Game = (props) => {
     history.push('/login');
   }
 
+
+
   const startRoundPlayer = () => {
     if (startOfRound && (JSON.parse(sessionStorage.getItem('user')).id === currentActingPlayer)){
       handleClickToOpen();
@@ -145,7 +272,6 @@ const Game = (props) => {
 
   const setGameModes = () => {
     var ingameModes_converted = []; 
-    //var response = await api.get(`/lobbies/${this.state.lobbyId}`);
     var modes = ingameModes;
     for (var ingameMode in modes){
       var mode = {}; 
@@ -187,7 +313,7 @@ const Game = (props) => {
 
   useEffect(() => {
     var modes = setGameModes();
-    setIngameModes (modes);
+    setIngameModes(modes);
     startRoundPlayer();
   }, [])
 
@@ -197,10 +323,9 @@ const Game = (props) => {
            <DialogTitle>{"Please choose in-game mode"}</DialogTitle>
            <List>
              {ingameModes.map((gameMode) => (
-               <ListItem button onClick={() => handleListItemClick(gameMode)} key={gameMode.text}>
+               <ListItem key={gameMode.text} button onClick={() => handleListItemClick(gameMode)} key={gameMode.text}>
                  <div><img src={gameMode.value} height={'30px'} width={'40px'} margin={'5px'}/></div>
                  <ListItemText primary={gameMode.text} />
-
                </ListItem>
              ))}
             </List>
@@ -210,7 +335,7 @@ const Game = (props) => {
           <Label>
               Current Mode: 
               <div><img src={currentInGameMode.value} height={'30px'} width={'40px'} margin={'5px'}/></div>
-              <input disabled = "true" type="text" value={currentInGameMode.text} />
+              <input disabled={true} type={"text"} value={currentInGameMode.text} />
           </Label>
         </CurrentModeContainer>
       </BackgroundContainer>
