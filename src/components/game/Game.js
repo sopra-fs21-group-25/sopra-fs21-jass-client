@@ -28,7 +28,6 @@ import slalom from "../../views/images/icons/slalom.png";
 import gusti from "../../views/images/icons/gusti.png";
 import mary from "../../views/images/icons/mary.png";
 
-
 import React, {useEffect, useState} from 'react';
 import {useHistory, useLocation} from "react-router-dom";
 import {BackgroundContainer} from "../../helpers/layout";
@@ -70,6 +69,7 @@ const Label = styled.label`
 `;
 
 const Game = (props) => {
+  const gameId = useLocation().state.id; 
   const [gameState, setGameState] = useState(useLocation().state); //remove
   const locationState = useLocation().state; 
   const [ingameModes, setIngameModes] = useState(useLocation().state.ingameModes); 
@@ -107,50 +107,32 @@ const Game = (props) => {
         break;
       }
     }
-  }, [])
-
-  // connect() {
-  //   var socket = new SockJS('/games');
-  //   this.stompClient = Stomp.over(socket);
-  //   this.stompClient.connect({}, function (frame) {
-  //     this.stompClient.subscribe(`/games/${this.state.id}/currentMode`, function (currentMode) {
-  //       this.setState({currentInGameMode: currentMode});
-  //     });
-  //   });
-  //  }
-
-  const sendCurrentMode = () => {
-    //stompClient.send(`/games/${this.state.id}/currentMode`, {}, this.state.currentInGameMode);
-    // stompClient.publish({
-    //   destination: `/app/lobbies/${this.state.thisLobby.id}/table`,
-    //   body: currentInGameMode
-    // });
-   }
-
-  // getRandomInt(max) {
-  //   return Math.floor(Math.random() * max);
-  // }
+  }, []);
 
   const endRound = () => {
     setStartOfRound(true); 
-  }
-
-  const endTurn = () => {
-    // var id_of_player = state.usersInLobby.indexOf(state.currentActingPlayer);
-    // this.state.currentActingPlayer = this.state.usersInLobby[(id_of_player + 1) % 4];
-  }
+  };
 
   const handleClickToOpen = () => {
     setOpenModePopUp(true);
-  }
+  };
     
   const handleToClose = () => {
     setOpenModePopUp(false);
-  }
+  };
 
-  const handleListItemClick = (value) => {
+  const handleListItemClick = async (value) => {
     setOpenModePopUp(false);
     setCurrentInGameMode(value);
+    var requestBody = {}; 
+    requestBody.ingameMode = value.text.substring(0, value.text.indexOf(" ")); 
+    requestBody.userId = user.id; 
+    console.log(requestBody);
+    var response = await api.put(`/games/${gameId}`, JSON.stringify(requestBody));
+    stompClient.publish({
+      destination: `/app/games/${gameId}/fetch`, 
+      body: null
+    });
   };
 
   const logout = () => {
@@ -159,20 +141,20 @@ const Game = (props) => {
     localStorage.removeItem('user');
     sessionStorage.removeItem('user');
     history.push('/login');
-  }
+  };
 
 
 
   const startRoundPlayer = () => {
-    if (startOfRound && (JSON.parse(sessionStorage.getItem('user')).id === currentActingPlayer)){
+    if (JSON.parse(sessionStorage.getItem('user')).id === currentActingPlayer){
       handleClickToOpen();
       setStartOfRound (false);
     }
-  }
+  };
 
   const updateGameState = (gameState) => {
     // logic for updating gameState
-  }
+  };
 
   const setGameModes = () => {
     var ingameModes_converted = []; 
@@ -213,21 +195,44 @@ const Game = (props) => {
     }
 
     return ingameModes_converted; 
-  }
+  };
 
-  useEffect(() => {
+  const setAttrValues = async (modes) =>{
+    var response = await api.get(`/games/${gameId}/${user.id}`);
+    if(response.data.currentIngameMode){
+        var mode = modes.find((element, index, array) => {
+          return element.text.includes(response.data.currentIngameMode);
+        });
+        setCurrentInGameMode(mode); 
+    }
+    setCurrentActingPlayer(response.data.idOfRoundStartingPlayer)
+    var trickToPlay = response.data.trickToPlay;
+    var hasTrickStarted = response.data.hasTrickStarted; 
+    if ((trickToPlay == 0) && (!hasTrickStarted)){
+      setStartOfRound(true); 
+      startRoundPlayer();
+    } else {
+      setStartOfRound(false);
+    }
+  };
+
+  useEffect(async () => {
     var modes = setGameModes();
     setIngameModes(modes);
-    startRoundPlayer();
-  }, [])
+    await setAttrValues(modes); 
+  }, []);
 
+  useSubscription(`/games/${gameId}/fetch`, async msg => {
+    await setAttrValues(ingameModes); 
+  });
+  
     return (
       <BackgroundContainer>
         <Dialog open={openModePopUp} onClose={handleToClose}>
            <DialogTitle>{"Please choose in-game mode"}</DialogTitle>
            <List>
-             {ingameModes.map((gameMode) => (
-               <ListItem key={gameMode.text} button onClick={() => handleListItemClick(gameMode)} key={gameMode.text}>
+             {ingameModes.map((gameMode, index) => (
+               <ListItem button onClick={() => handleListItemClick(gameMode)} key={index}>
                  <div><img src={gameMode.value} height={'30px'} width={'40px'} margin={'5px'}/></div>
                  <ListItemText primary={gameMode.text} />
                </ListItem>
