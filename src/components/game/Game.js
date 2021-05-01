@@ -109,12 +109,6 @@ const Game = (props) => {
     }
   }, []);
 
-
-
-
-
-
-
   const handleClickToOpen = () => {
     setOpenModePopUp(true);
   };
@@ -145,8 +139,6 @@ const Game = (props) => {
     history.push('/login');
   };
 
-
-
   const startRoundPlayer = () => {
     if (JSON.parse(sessionStorage.getItem('user')).id === currentActingPlayer){
       handleClickToOpen();
@@ -158,7 +150,7 @@ const Game = (props) => {
     const payload = JSON.stringify({userId: myId, playedCard: playedCard});
     const request = await api.put(`/games/${gameState.id}`, payload);
     stompClient.publish({
-      destination: `/games/${gameState.id}/fetch`,
+      destination: `/app/games/${gameState.id}/fetch`,
       body: null,
     });
   }
@@ -246,7 +238,7 @@ const Game = (props) => {
              ))}
             </List>
           </Dialog>
-          {myIndex
+          {(myIndex !== null)
             ? <InitDistribution 
                 gameState={gameState} 
                 updateGameState={updateGameState}
