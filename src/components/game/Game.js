@@ -1,8 +1,6 @@
-import React from 'react';
 import '../cards/index.css';
 import styled from 'styled-components';
-import { BackgroundContainer, BaseContainer } from '../../helpers/layout';
-import { api, handleError } from '../../helpers/api';
+import { BaseContainer } from '../../helpers/layout';
 import Player from '../../views/Player';
 import { Spinner } from '../../views/design/Spinner';
 import { Button } from '../../views/design/Button';
@@ -33,6 +31,12 @@ import ModalHeader from 'react-bootstrap/esm/ModalHeader';
 
 import SockJS from "sockjs-client"
 import * as Stomp from 'stompjs';
+
+import React, {useEffect, useState} from 'react';
+import {useHistory, useLocation} from "react-router-dom";
+import {BackgroundContainer} from "../../helpers/layout";
+import {api} from "../../helpers/api";
+import {useStompClient, useSubscription} from 'react-stomp-hooks';
 
 const Container = styled(BaseContainer)`
   color: #ffffff;
@@ -68,95 +72,81 @@ const Label = styled.label`
   text-transform: uppercase;
 `;
 
-class Game extends React.Component {
-  constructor(props) {
-    super(props);
-    // this.state = {
-    //   users: null, 
-    //   openModePopUp: false,
-    //   gameModes: [], 
-    //   currentPlayer: null,  
-    //   startOfRound: true, 
-    //   user: null, 
-    //   currentGameMode: {suit: null, value: null}, 
-    //   lobbyId: 'ff5a8b43-edce-4acd-9b17-cb670c853f91'
-    // };
-    this.state = this.props.location.state; 
-    this.state.startOfRound = true;
-    this.state.openModePopUp = false;
-    this.state.currentActingPlayer = this.state.idOfRoundStartingPlayer;
-    this.state.currentInGameMode = {text: "", value: ""};
-    this.handleClickToOpen = this.handleClickToOpen.bind(this);
-    this.handleToClose = this.handleToClose.bind(this);
-    this.handleListItemClick = this.handleListItemClick.bind(this);
-    this.state.userName = JSON.parse(localStorage.getItem('user')).username;
-    this.stompClient = null;
-  }  
-  
-  connect() {
-    var socket = new SockJS('/games');
-    this.stompClient = Stomp.over(socket);
-    this.stompClient.connect({}, function (frame) {
-      this.stompClient.subscribe(`/games/${this.state.id}/currentMode`, function (currentMode) {
-        this.setState({currentInGameMode: currentMode});
-      });
-    });
-   }
+const Game = (props) => {
+    const locationState = useLocation().state; 
+    const [ingameModes, setIngameModes] = useState(useLocation().state.ingameModes); 
+    const [startOfRound, setStartOfRound] = useState(true);
+    const [openModePopUp, setOpenModePopUp] = useState(false);
+    const [currentActingPlayer, setCurrentActingPlayer] = useState(useLocation().state.idOfRoundStartingPlayer);
+    const [currentInGameMode, setCurrentInGameMode] = useState({text: "", value: ""});
+    const user = JSON.parse(sessionStorage.getItem('user'));
+    const stompClient = useStompClient();
+    const history = useHistory(); 
 
-  sendCurrentMode() {
+  useEffect(() => console.log(locationState), [])
+  // connect() {
+  //   var socket = new SockJS('/games');
+  //   this.stompClient = Stomp.over(socket);
+  //   this.stompClient.connect({}, function (frame) {
+  //     this.stompClient.subscribe(`/games/${this.state.id}/currentMode`, function (currentMode) {
+  //       this.setState({currentInGameMode: currentMode});
+  //     });
+  //   });
+  //  }
+
+  const sendCurrentMode = () => {
     //stompClient.send(`/games/${this.state.id}/currentMode`, {}, this.state.currentInGameMode);
-    this.stompClient.publish({
-      destination: `/app/lobbies/${this.state.thisLobby.id}/table`,
-      body: this.state.currentInGameMode
-    });
+    // stompClient.publish({
+    //   destination: `/app/lobbies/${this.state.thisLobby.id}/table`,
+    //   body: currentInGameMode
+    // });
    }
 
-  getRandomInt(max) {
-    return Math.floor(Math.random() * max);
+  // getRandomInt(max) {
+  //   return Math.floor(Math.random() * max);
+  // }
+
+  const endRound = () => {
+    setStartOfRound(true); 
   }
 
-  async endRound() {
-    await this.setState({startOfRound: true});
+  const endTurn = () => {
+    // var id_of_player = state.usersInLobby.indexOf(state.currentActingPlayer);
+    // this.state.currentActingPlayer = this.state.usersInLobby[(id_of_player + 1) % 4];
   }
 
-  async endTurn(){
-    var id_of_player = this.state.usersInLobby.indexOf(this.state.currentActingPlayer);
-    this.state.currentActingPlayer = this.state.usersInLobby[(id_of_player + 1) % 4];
-  }
-  
-  setCurrentActingPlayer(player){
-    this.setState({currentActingPlayer: player});
-  }
-
-  handleClickToOpen(){
-    this.setState({openModePopUp: true});
+  const handleClickToOpen = () => {
+    setOpenModePopUp(true);
   }
     
-  handleToClose(){
-    this.setState({openModePopUp: false});
+  const handleToClose = () => {
+    setOpenModePopUp(false);
   }
 
-  handleListItemClick(value){
-    this.setState({openModePopUp: false, currentInGameMode: value});
+  const handleListItemClick = (value) => {
+    setOpenModePopUp(false);
+    setCurrentInGameMode(value);
   };
 
-  logout() {
+  const logout = () => {
     localStorage.removeItem('token');
+    sessionStorage.removeItem('token');
     localStorage.removeItem('user');
-    this.props.history.push('/login');
+    sessionStorage.removeItem('user');
+    history.push('/login');
   }
 
-  startRoundPlayer(){
-    if (this.state.startOfRound && (JSON.parse(localStorage.getItem('user')).id === this.state.currentActingPlayer)){
-      this.handleClickToOpen();
-      this.setState({startOfRound: false});
+  const startRoundPlayer = () => {
+    if (startOfRound && (JSON.parse(sessionStorage.getItem('user')).id === currentActingPlayer)){
+      handleClickToOpen();
+      setStartOfRound (false);
     }
   }
 
-  setGameModes(){
+  const setGameModes = () => {
     var ingameModes_converted = []; 
     //var response = await api.get(`/lobbies/${this.state.lobbyId}`);
-    var modes = this.state.ingameModes;
+    var modes = ingameModes;
     for (var ingameMode in modes){
       var mode = {}; 
       mode.text = modes[ingameMode].ingameMode + " " + modes[ingameMode].multiplicator; 
@@ -195,24 +185,19 @@ class Game extends React.Component {
     return ingameModes_converted; 
   }
 
-  async componentDidMount() {
-    this.connect();
-    var modes = this.setGameModes();
-    this.setState({ingameModes: modes});
-    this.setState({user: JSON.parse(localStorage.getItem('user'))}, async function () {
-      console.log(localStorage.getItem('user'));
-      this.startRoundPlayer();
-    });
-  }
+  useEffect(() => {
+    var modes = setGameModes();
+    setIngameModes (modes);
+    startRoundPlayer();
+  }, [])
 
-  render() {
     return (
       <BackgroundContainer>
-        <Dialog open={this.state.openModePopUp} onClose={this.handleToClose}>
+        <Dialog open={openModePopUp} onClose={handleToClose}>
            <DialogTitle>{"Please choose in-game mode"}</DialogTitle>
            <List>
-             {this.state.ingameModes.map((gameMode) => (
-               <ListItem button onClick={() => this.handleListItemClick(gameMode)} key={gameMode.text}>
+             {ingameModes.map((gameMode) => (
+               <ListItem button onClick={() => handleListItemClick(gameMode)} key={gameMode.text}>
                  <div><img src={gameMode.value} height={'30px'} width={'40px'} margin={'5px'}/></div>
                  <ListItemText primary={gameMode.text} />
 
@@ -224,13 +209,11 @@ class Game extends React.Component {
           <CurrentModeContainer>
           <Label>
               Current Mode: 
-              <div><img src={this.state.currentInGameMode.value} height={'30px'} width={'40px'} margin={'5px'}/></div>
-              <input disabled = "true" type="text" value={this.state.currentInGameMode.text} />
+              <div><img src={currentInGameMode.value} height={'30px'} width={'40px'} margin={'5px'}/></div>
+              <input disabled = "true" type="text" value={currentInGameMode.text} />
           </Label>
         </CurrentModeContainer>
       </BackgroundContainer>
     );
-  }
 }
-
 export default withRouter(Game);
