@@ -40,7 +40,7 @@ const JoinPage = () => {
   const [user, setUser] = useState({userType: 'GuestUser'});
   const [lobbies, setLobbies] = useState([]);
 
-  const myId = JSON.parse(localStorage.getItem('user')).id;
+  const myId = JSON.parse(sessionStorage.getItem('user')).id;
 
   useEffect(() => {
     fetchUser().then(value => console.log(value));  // use .then() for callback logging

@@ -18,6 +18,13 @@ import LobbyPlayerList from "./assets/LobbyPlayerList";
 import LobbySearchbar from "./assets/LobbySearchbar";
 
 
+
+// leveraged to exclude the users that are currently in the lobby from the list of users one can invite
+function excludeSublist(list, sublist) {
+  const subset = new Set(sublist);
+  return [...new Set(list.filter(el => !subset.has(el.username)))];
+}
+
 function parseUsers(top, bot, left, right) {
   return JSON.stringify({
     playerTop: top,
@@ -27,43 +34,37 @@ function parseUsers(top, bot, left, right) {
   });
 }
 
-// leveraged to exclude the users that are currently in the lobby from the list of users one can invite
-function excludeSublist(list, sublist) {
-  const subset = new Set(sublist);
-  return [...new Set(list.filter(el => !subset.has(el.username)))];
+function composeGamePostJSON(lobby, player0id, player1id, player2id, player3id) {
+  return JSON.stringify({
+    ingameModes: lobby.ingameModes,
+    pointsToWin: lobby.pointsToWin,
+    startingCard: lobby.startingCard,
+    weisAllowed: lobby.weis,
+    crossWeisAllowed: lobby.crossWeis,
+    weisAsk: lobby.weisAsk,
+    player0id: player0id,
+    player1id: player1id,
+    player2id: player2id,
+    player3id: player3id
+  });
 }
 
-// returns false if list-elements are not identical, true otherwise
-function containTheSameUsers(list1, list2) {
-  if(list1.length != list2.length) {
-    return false;
-  }
 
-  const l1set = new Set(list1.map(u => u.id));
-  const l2set = new Set(list2.map(u => u.id));
 
-  for(let x of l1set) {
-    if(!l2set.has(x)) return false;
-  }
-
-  for(let y of l2set) {
-    if(!l1set.has(y)) return false;
-  }
-
-  return true;
-}
 
 const LobbyPage = () => {
-  const [thisLobby, setThisLobby] = useState(useLocation().state);
   const [lobbyUsers, setLobbyUsers] = useState(useLocation().state.usersInLobby);
   const [allUsers, setAllUsers] = useState([]);
   const [lobbyUsersFetchSwitch, setLobbyUsersFetchSwitch] = useState(false);
   const [allUsersFetchSwitch, setAllUsersFetchSwitch] = useState(false);
-  const myId = JSON.parse(localStorage.getItem('user')).id;
-  const myUsername = JSON.parse(localStorage.getItem('user')).username;
+  const thisLobby = useLocation().state;
+  const myId = JSON.parse(sessionStorage.getItem('user')).id;
+  const myUsername = JSON.parse(sessionStorage.getItem('user')).username;
   const iAmCreator = useLocation().state.creatorUsername === myUsername;
   const history = useHistory();
   const stompClient = useStompClient();
+
+
 
   // function leveraged to handle proper state updates of all users in the lobby when a user leaves
   const backToMenu = async () => {
@@ -84,10 +85,10 @@ const LobbyPage = () => {
 
         // construct message to inform other users about the seat that has eventually been freed up
         let message = '';
-        const top = localStorage.getItem('topPlayer');
-        const bottom = localStorage.getItem('bottomPlayer');
-        const left = localStorage.getItem('leftPlayer');
-        const right = localStorage.getItem('rightPlayer');
+        const top = sessionStorage.getItem('topPlayer');
+        const bottom = sessionStorage.getItem('bottomPlayer');
+        const left = sessionStorage.getItem('leftPlayer');
+        const right = sessionStorage.getItem('rightPlayer');
 
         // if I sit at a spot around the table, construct appropriate message for other users
         if(top === myUsername) {
@@ -118,47 +119,71 @@ const LobbyPage = () => {
     } catch(error) {
       alert("Something went wrong when trying to return to the menu")
     } finally {
-      // finally remove the items from my localStorage and redirect back to the menu
-      localStorage.removeItem('topPlayer');
-      localStorage.removeItem('bottomPlayer');
-      localStorage.removeItem('leftPlayer');
-      localStorage.removeItem('rightPlayer');
+      // finally remove the items from my sessionStorage and redirect back to the menu
+      sessionStorage.removeItem('topPlayer');
+      sessionStorage.removeItem('bottomPlayer');
+      sessionStorage.removeItem('leftPlayer');
+      sessionStorage.removeItem('rightPlayer');
       history.push('/menu');
     }
   }
 
+  // used to clean up the lobby (i.e. remove from database, reset sessionStorage) on game launch
+  const cleanUpLobby = async () => {
+    try {
+      if(iAmCreator) {
+        // delete lobby in the database
+        const response = await api.put(`/lobbies/${thisLobby.id}/close`);
+      }
+      sessionStorage.removeItem('topPlayer');
+      sessionStorage.removeItem('bottomPlayer');
+      sessionStorage.removeItem('leftPlayer');
+      sessionStorage.removeItem('rightPlayer');
 
-  // if I got kicked from the lobby...
-  useSubscription(`/lobbies/${thisLobby.id}/kicked/${myUsername}`, () => backToMenu());
+    } catch(error) {
+      alert('could not clean up lobby, something went wrong...');
+    }
+  }
 
-  // if shutdown notification received then clear localStorage items and redirect to menu
-  useSubscription(`/lobbies/${thisLobby.id}/shutdown`, msg => {
-    alert("It seems this lobby has been shut down...");
-    localStorage.removeItem('topPlayer');
-    localStorage.removeItem('bottomPlayer');
-    localStorage.removeItem('leftPlayer');
-    localStorage.removeItem('rightPlayer');
-    history.push('/menu');
-  });
+  // essentially this sends a POST to crete the game and then publishes via stomp, that participants must fetch the game now
+  const createGame = async () => {
+    try {
+      const response = await api.get(`/lobbies/${thisLobby.id}/users`)
+      const usersInLobby = response.data.usersInLobby;
 
-  // if another player joins or leaves, get a notification to initialize re-fetching an table synchronisation
-  useSubscription(`/lobbies/${thisLobby.id}/fetch`, msg => {
-    // trigger the user fetching switch
-    setLobbyUsersFetchSwitch(!lobbyUsersFetchSwitch);
+      const player0id = usersInLobby.filter(u => u.username === sessionStorage.getItem('topPlayer'))[0].id;
+      const player1id = usersInLobby.filter(u => u.username === sessionStorage.getItem('leftPlayer'))[0].id;
+      const player2id = usersInLobby.filter(u => u.username === sessionStorage.getItem('bottomPlayer'))[0].id;
+      const player3id = usersInLobby.filter(u => u.username === sessionStorage.getItem('rightPlayer'))[0].id;
 
-    // additionally if I am the creator and a user has joined I need to inform him about the seats already taken
-    if(iAmCreator && msg.body === 'join') {
-      const top = localStorage.getItem('topPlayer');
-      const bottom = localStorage.getItem('bottomPlayer');
-      const left = localStorage.getItem('leftPlayer');
-      const right = localStorage.getItem('rightPlayer');
+      const postPayload = composeGamePostJSON(thisLobby, player0id, player1id, player2id, player3id);
+      const gamePostResponse = await api.post('/games', postPayload);
+
+      const gameId = gamePostResponse.data.id;
 
       stompClient.publish({
-        destination: `/app/lobbies/${thisLobby.id}/table`,
-        body: parseUsers(top, bottom, left, right)
+        destination: `/app/lobbies/${thisLobby.id}/initialSynchronization`,
+        body: JSON.stringify({
+          id: gameId,
+          player0id: player0id,
+          player1id: player1id,
+          player2id: player2id,
+          player3id: player3id})
       });
+
+    } catch(error) {
+      alert("Game could not be created...");
     }
-  });
+
+
+
+    /*    const response = await api.get(`/lobbies/${thisLobby.id}`);
+        history.push({
+          pathname: `/game/${thisLobby.id}`,
+          state: {...response.data}
+        });*/
+  }
+
 
 
   // on component mount (I have joined the lobby), inform the other users in the lobby to re-fetch the users in the lobby
@@ -209,10 +234,10 @@ const LobbyPage = () => {
 
       } catch (error) {
         alert('Could not fetch the necessary lobby data...');
-        localStorage.removeItem('topPlayer');
-        localStorage.removeItem('bottomPlayer');
-        localStorage.removeItem('leftPlayer');
-        localStorage.removeItem('rightPlayer');
+        sessionStorage.removeItem('topPlayer');
+        sessionStorage.removeItem('bottomPlayer');
+        sessionStorage.removeItem('leftPlayer');
+        sessionStorage.removeItem('rightPlayer');
         history.push('/menu');
       }
     }
@@ -222,10 +247,79 @@ const LobbyPage = () => {
 
 
 
+  // if I got kicked from the lobby...
+  useSubscription(`/lobbies/${thisLobby.id}/kicked/${myUsername}`, async () => await backToMenu());
+
+  // if shutdown notification received then clear sessionStorage items and redirect to menu
+  useSubscription(`/lobbies/${thisLobby.id}/shutdown`, msg => {
+    alert("It seems this lobby has been shut down...");
+    sessionStorage.removeItem('topPlayer');
+    sessionStorage.removeItem('bottomPlayer');
+    sessionStorage.removeItem('leftPlayer');
+    sessionStorage.removeItem('rightPlayer');
+    history.push('/menu');
+  });
+
+  // if another player joins or leaves, get a notification to initialize re-fetching an table synchronisation
+  useSubscription(`/lobbies/${thisLobby.id}/fetch`, msg => {
+    // trigger the user fetching switch
+    setLobbyUsersFetchSwitch(!lobbyUsersFetchSwitch);
+
+    // additionally if I am the creator and a user has joined I need to inform him about the seats already taken
+    if(iAmCreator && msg.body === 'join') {
+      const top = sessionStorage.getItem('topPlayer');
+      const bottom = sessionStorage.getItem('bottomPlayer');
+      const left = sessionStorage.getItem('leftPlayer');
+      const right = sessionStorage.getItem('rightPlayer');
+
+      stompClient.publish({
+        destination: `/app/lobbies/${thisLobby.id}/table`,
+        body: parseUsers(top, bottom, left, right)
+      });
+    }
+  });
+
+  // leveraged for broadcasting the new game id upon game launch
+  useSubscription(`/lobbies/${thisLobby.id}/gameInitialization`, async msg => {
+
+    await cleanUpLobby();
+    const data = JSON.parse(msg.body);
+
+    const gameId = data.id;
+    delete data.id;
+
+
+    // check if I will participate in the game
+    if(Object.values(data).includes(myId)) {
+
+      // fetch the game that has been created with its initial state containing this user's cards
+      try {
+
+        const gameResponse = await api.get(`/games/${gameId}/${myId}`);
+        const game = gameResponse.data;
+        console.log({game});
+
+        // TODO: uncomment when game component is implemented correctly
+        /*history.push({
+          path: `/game/${gameId}`,
+          state: {...game}
+        });*/
+
+
+      } catch(error) {
+        alert('Could not fetch the game about to launch')
+
+      }
+    } else {
+      history.push('/menu');
+    }
+  });
+
+
+
   return (
       <BackgroundContainer>
         <LobbyWrapper>
-
           {iAmCreator ? (
               <LobbySearchbar
                 users={allUsers}
@@ -233,9 +327,6 @@ const LobbyPage = () => {
                 lobbyId={thisLobby.id}
               />
           ) : null }
-
-
-
           <PlayerWrapper>
             <PlayerHeader>
               Game Lobby
@@ -249,35 +340,22 @@ const LobbyPage = () => {
                   client={stompClient}
               />
             </PlayerListWrapper>
-
-
-
-
-
           </PlayerWrapper>
-
           <JassTeppichWrapper>
-
             <LobbyJassTable client={stompClient} lobbyId={thisLobby.id}/>
-
           </JassTeppichWrapper>
-
           <ChatWrapper/>
-
           <BackButton onClick={() => backToMenu()}>
             Back to Mainmenu
           </BackButton>
           {iAmCreator ? (
-              <StartButton>
+              <StartButton onClick={() => createGame()}>
                 Start Game
               </StartButton>
           ) : null }
-
-
         </LobbyWrapper>
       </BackgroundContainer>
   );
 }
-
 
 export default LobbyPage;

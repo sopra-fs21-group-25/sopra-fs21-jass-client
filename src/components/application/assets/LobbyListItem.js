@@ -54,7 +54,7 @@ const LobbyListItem = props => {
   let uniqueKey = 0;    // key generator for children in the render method
 
   const join = async () => {
-    const myId = JSON.parse(localStorage.getItem('user')).id;
+    const myId = JSON.parse(sessionStorage.getItem('user')).id;
     const userIdRequest = JSON.stringify({userId: myId, remove: false, add: true});
     const response = await api.put(`/lobbies/${lobby.id}`, userIdRequest);
     lobby = response.data;
