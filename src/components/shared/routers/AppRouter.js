@@ -75,10 +75,18 @@ class AppRouter extends React.Component {
                 )}
             />
             <Route
-              path="/game/:id"
+              path="/gametest"
+              exact
               render={() => (
-                  <Game/>
+                  <GameTestPage />
               )}
+            />
+            <Route
+                path="/game/:id"
+                exact
+                render={() => (
+                    <Game />
+                )}
             />
         </Switch>
       </BrowserRouter>

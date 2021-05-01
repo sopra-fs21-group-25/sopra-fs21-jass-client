@@ -107,7 +107,7 @@ div.playerD > div {
   	grid-row-end: 2;
  	justify-content: flex-end;
  	align-items: center;
- 	display: flex;
+ 	display: none;
 }
 
 div.playerBcardSpot > div {
@@ -124,7 +124,7 @@ div.playerBcardSpot > div {
   	grid-row-start: 1;
   	grid-row-end: 1;
  	flex-direction: column;
- 	display: flex;
+ 	display: none;
  	text-align: center;
 }
 
@@ -139,7 +139,7 @@ div.playerCcardSpot > div {
   	grid-row-end: 2;
  	justify-content: flex-start;
  	align-items: center;
- 	display: flex;
+ 	display: none;
 }
 
 div.playerDcardSpot > div {

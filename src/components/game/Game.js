@@ -27,7 +27,6 @@ import obenabe from "../../views/images/icons/obenabe.png";
 import slalom from "../../views/images/icons/slalom.png";
 import gusti from "../../views/images/icons/gusti.png";
 import mary from "../../views/images/icons/mary.png";
-import ModalHeader from 'react-bootstrap/esm/ModalHeader';
 
 import React, {useEffect, useState} from 'react';
 import {useHistory, useLocation} from "react-router-dom";
@@ -70,24 +69,57 @@ const Label = styled.label`
 `;
 
 const Game = (props) => {
-    const gameId = useLocation().state.id; 
-    const [gameState, setGameState] = useState(useLocation().state); 
-    const [ingameModes, setIngameModes] = useState(useLocation().state.ingameModes); 
-    const [startOfRound, setStartOfRound] = useState(true);
-    const [openModePopUp, setOpenModePopUp] = useState(false);
-    const [currentActingPlayer, setCurrentActingPlayer] = useState(useLocation().state.idOfRoundStartingPlayer);
-    const [currentInGameMode, setCurrentInGameMode] = useState({text: "", value: null});
-    const user = JSON.parse(sessionStorage.getItem('user'));
-    const stompClient = useStompClient();
-    const history = useHistory(); 
+  const gameId = useLocation().state.id; 
+  const [gameState, setGameState] = useState(useLocation().state); //remove
+  const locationState = useLocation().state; 
+  const [ingameModes, setIngameModes] = useState(useLocation().state.ingameModes); 
+  const [startOfRound, setStartOfRound] = useState(true);
+  const [openModePopUp, setOpenModePopUp] = useState(false);
+  const [currentActingPlayer, setCurrentActingPlayer] = useState(useLocation().state.idOfRoundStartingPlayer);
+  const [currentInGameMode, setCurrentInGameMode] = useState({text: "", value: ""});
+  const user = JSON.parse(sessionStorage.getItem('user'));
+  const stompClient = useStompClient();
+  const history = useHistory(); 
+
+  const myId = JSON.parse(sessionStorage.getItem('user')).id;
+  const player0id = useLocation().state.player0id;
+  const player1id = useLocation().state.player1id;
+  const player2id = useLocation().state.player2id;
+  const player3id = useLocation().state.player3id;
+  const [myIndex, setMyIndex] = useState(null);
+
+  useEffect(() => {
+    switch(myId) {
+      case player0id: {
+        setMyIndex(0);
+        break;
+      };
+      case player1id: {
+        setMyIndex(1);
+        break;
+      };
+      case player2id: {
+        setMyIndex(2);
+        break;
+      };
+      case player3id: {
+        setMyIndex(3);
+        break;
+      }
+    }
+  }, []);
+
+  const endRound = () => {
+    setStartOfRound(true); 
+  };
 
   const handleClickToOpen = () => {
     setOpenModePopUp(true);
-  }
+  };
     
   const handleToClose = () => {
     setOpenModePopUp(false);
-  }
+  };
 
   const handleListItemClick = async (value) => {
     setOpenModePopUp(false);
@@ -109,14 +141,20 @@ const Game = (props) => {
     localStorage.removeItem('user');
     sessionStorage.removeItem('user');
     history.push('/login');
-  }
+  };
+
+
 
   const startRoundPlayer = () => {
     if (JSON.parse(sessionStorage.getItem('user')).id === currentActingPlayer){
       handleClickToOpen();
       setStartOfRound (false);
     }
-  }
+  };
+
+  const updateGameState = (gameState) => {
+    // logic for updating gameState
+  };
 
   const setGameModes = () => {
     var ingameModes_converted = []; 
@@ -157,7 +195,7 @@ const Game = (props) => {
     }
 
     return ingameModes_converted; 
-  }
+  };
 
   const setAttrValues = async (modes) =>{
     var response = await api.get(`/games/${gameId}/${user.id}`);
@@ -176,7 +214,7 @@ const Game = (props) => {
     } else {
       setStartOfRound(false);
     }
-  }
+  };
 
   useEffect(async () => {
     var modes = setGameModes();
@@ -187,7 +225,7 @@ const Game = (props) => {
   useSubscription(`/games/${gameId}/fetch`, async msg => {
     await setAttrValues(ingameModes); 
   });
-
+  
     return (
       <BackgroundContainer>
         <Dialog open={openModePopUp} onClose={handleToClose}>
@@ -197,17 +235,16 @@ const Game = (props) => {
                <ListItem button onClick={() => handleListItemClick(gameMode)} key={index}>
                  <div><img src={gameMode.value} height={'30px'} width={'40px'} margin={'5px'}/></div>
                  <ListItemText primary={gameMode.text} />
-
                </ListItem>
              ))}
             </List>
           </Dialog>
-          <InitDistribution />
+          <InitDistribution gameState={gameState} updateGameState={updateGameState}/>
           <CurrentModeContainer>
           <Label>
               Current Mode: 
               <div><img src={currentInGameMode.value} height={'30px'} width={'40px'} margin={'5px'}/></div>
-              <input disabled = {true} type="text" value={currentInGameMode.text} />
+              <input disabled={true} type={"text"} value={currentInGameMode.text} />
           </Label>
         </CurrentModeContainer>
       </BackgroundContainer>
