@@ -178,8 +178,8 @@ const LobbyPage = () => {
 
 
     /*    const response = await api.get(`/lobbies/${thisLobby.id}`);
-        history.push({
-          pathname: `/game/${thisLobby.id}`,
+          history.push({
+            pathname: `/game/${thisLobby.id}`,
           state: {...response.data}
         });*/
   }
@@ -299,11 +299,10 @@ const LobbyPage = () => {
         const game = gameResponse.data;
         console.log({game});
 
-        // TODO: uncomment when game component is implemented correctly
-        /*history.push({
-          path: `/game/${gameId}`,
+        history.push({
+          pathname: `/game/${gameId}`,
           state: {...game}
-        });*/
+        });
 
 
       } catch(error) {

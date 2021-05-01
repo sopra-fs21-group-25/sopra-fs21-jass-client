@@ -75,24 +75,9 @@ class AppRouter extends React.Component {
                 )}
             />
             <Route
-              path="/gametest"
-              exact
-              render={() => (
-                  <GameTestPage />
-              )}
-            />
-            <Route
-                path="/game"
-                exact
-                render={() => (
-                    <Game />
-                )}
-            />
-            <Route
               path="/game/:id"
-              exact
-              render={(props) => (
-                  <Game {...props}/>
+              render={() => (
+                  <Game/>
               )}
             />
         </Switch>

@@ -82,16 +82,16 @@ class Game extends React.Component {
     //   currentGameMode: {suit: null, value: null}, 
     //   lobbyId: 'ff5a8b43-edce-4acd-9b17-cb670c853f91'
     // };
-    this.state = this.props.location.state.gameInfo; 
+    this.state = this.props.location.state; 
     this.state.startOfRound = true;
     this.state.openModePopUp = false;
-    this.state.currentActingPlayer = this.state.usersInLobby[this.getRandomInt(4)];
+    this.state.currentActingPlayer = this.state.idOfRoundStartingPlayer;
     this.state.currentInGameMode = {text: "", value: ""};
     this.handleClickToOpen = this.handleClickToOpen.bind(this);
     this.handleToClose = this.handleToClose.bind(this);
     this.handleListItemClick = this.handleListItemClick.bind(this);
     this.state.userName = JSON.parse(localStorage.getItem('user')).username;
-    this.stompClient = this.props.location.state.stompClient;
+    this.stompClient = null;
   }  
   
   connect() {
@@ -148,7 +148,7 @@ class Game extends React.Component {
   }
 
   startRoundPlayer(){
-    if (this.state.startOfRound && (this.state.userName === this.state.currentActingPlayer)){
+    if (this.state.startOfRound && (JSON.parse(localStorage.getItem('user')).id === this.state.currentActingPlayer)){
       this.handleClickToOpen();
       this.setState({startOfRound: false});
     }
