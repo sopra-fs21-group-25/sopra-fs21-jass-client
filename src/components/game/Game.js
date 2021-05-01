@@ -31,6 +31,9 @@ import gusti from "../../views/images/icons/gusti.png";
 import mary from "../../views/images/icons/mary.png";
 import ModalHeader from 'react-bootstrap/esm/ModalHeader';
 
+import SockJS from "sockjs-client"
+import * as Stomp from 'stompjs';
+
 const Container = styled(BaseContainer)`
   color: #ffffff;
   text-align: center;
@@ -66,6 +69,7 @@ const Label = styled.label`
 `;
 
 class Game extends React.Component {
+
   constructor(props) {
     super(props);
     // this.state = {
@@ -78,16 +82,53 @@ class Game extends React.Component {
     //   currentGameMode: {suit: null, value: null}, 
     //   lobbyId: 'ff5a8b43-edce-4acd-9b17-cb670c853f91'
     // };
-    this.state = this.props.location.state; 
+    this.state = this.props.location.state.gameInfo; 
     this.state.startOfRound = true;
     this.state.openModePopUp = false;
-    this.state.currentActingPlayer = null;
+    this.state.currentActingPlayer = this.state.usersInLobby[this.getRandomInt(4)];
     this.state.currentInGameMode = {text: "", value: ""};
     this.handleClickToOpen = this.handleClickToOpen.bind(this);
     this.handleToClose = this.handleToClose.bind(this);
     this.handleListItemClick = this.handleListItemClick.bind(this);
+    this.state.userName = JSON.parse(localStorage.getItem('user')).username;
+    this.stompClient = this.props.location.state.stompClient;
   }  
- 
+  
+  connect() {
+    var socket = new SockJS('/games');
+    this.stompClient = Stomp.over(socket);
+    this.stompClient.connect({}, function (frame) {
+      this.stompClient.subscribe(`/games/${this.state.id}/currentMode`, function (currentMode) {
+        this.setState({currentInGameMode: currentMode});
+      });
+    });
+   }
+
+  sendCurrentMode() {
+    //stompClient.send(`/games/${this.state.id}/currentMode`, {}, this.state.currentInGameMode);
+    this.stompClient.publish({
+      destination: `/app/lobbies/${this.state.thisLobby.id}/table`,
+      body: this.state.currentInGameMode
+    });
+   }
+
+  getRandomInt(max) {
+    return Math.floor(Math.random() * max);
+  }
+
+  async endRound() {
+    await this.setState({startOfRound: true});
+  }
+
+  async endTurn(){
+    var id_of_player = this.state.usersInLobby.indexOf(this.state.currentActingPlayer);
+    this.state.currentActingPlayer = this.state.usersInLobby[(id_of_player + 1) % 4];
+  }
+  
+  setCurrentActingPlayer(player){
+    this.setState({currentActingPlayer: player});
+  }
+
   handleClickToOpen(){
     this.setState({openModePopUp: true});
   }
@@ -107,7 +148,7 @@ class Game extends React.Component {
   }
 
   startRoundPlayer(){
-    if (this.state.startOfRound){
+    if (this.state.startOfRound && (this.state.userName === this.state.currentActingPlayer)){
       this.handleClickToOpen();
       this.setState({startOfRound: false});
     }
@@ -158,9 +199,11 @@ class Game extends React.Component {
   }
 
   async componentDidMount() {
+    this.connect();
     var modes = this.setGameModes();
     this.setState({ingameModes: modes});
     this.setState({user: JSON.parse(localStorage.getItem('user'))}, async function () {
+      console.log(localStorage.getItem('user'));
       this.startRoundPlayer();
     });
   }
