@@ -151,7 +151,7 @@ const Game = (props) => {
     const request = await api.put(`/games/${gameState.id}`, payload);
     stompClient.publish({
       destination: `/app/games/${gameState.id}/fetch`,
-      body: null,
+      body: null
     });
   }
 
