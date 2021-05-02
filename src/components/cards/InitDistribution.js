@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import PlayingCardsList from "./PlayingCard/Hand/PlayingCard/PlayingCardsList";
 import Hand from "./PlayingCard/Hand/Hand";
 import PlayingCard from "./PlayingCard/Hand/PlayingCard/PlayingCard";
+import { Button } from '../../views/design/Button';
 import './css/init.css';
 
 
@@ -107,9 +108,9 @@ class InitDistribution extends Component {
     this.setState({
       currentlyInPlay: {
         playerA: this.state.gameState.cardsPlayed[this.state.myIndex] ? parseCardToImageString(this.state.gameState.cardsPlayed[this.state.myIndex]) : 'flipped', 
-        playerB: this.state.gameState.cardsPlayed[(this.state.myIndex + 1) % 4] ? parseCardToImageString(this.state.gameState.cardsPlayed[(this.state.myIndex + 1) % 4]) : 'flipped', 
-        playerC: this.state.gameState.cardsPlayed[(this.state.myIndex + 2) % 4] ? parseCardToImageString(this.state.gameState.cardsPlayed[(this.state.myIndex + 2) % 4]) : 'flipped', 
-        playerD: this.state.gameState.cardsPlayed[(this.state.myIndex + 3) % 4] ? parseCardToImageString(this.state.gameState.cardsPlayed[(this.state.myIndex + 3) % 4]) : 'flipped',
+        playerD: this.state.gameState.cardsPlayed[(this.state.myIndex + 1) % 4] ? parseCardToImageString(this.state.gameState.cardsPlayed[(this.state.myIndex + 1) % 4]) : 'flipped',
+        playerC: this.state.gameState.cardsPlayed[(this.state.myIndex + 2) % 4] ? parseCardToImageString(this.state.gameState.cardsPlayed[(this.state.myIndex + 2) % 4]) : 'flipped',
+        playerB: this.state.gameState.cardsPlayed[(this.state.myIndex + 3) % 4] ? parseCardToImageString(this.state.gameState.cardsPlayed[(this.state.myIndex + 3) % 4]) : 'flipped',
       }
     }, () => {
       if (this.state.currentlyInPlay.playerA != 'flipped') {
@@ -150,9 +151,9 @@ class InitDistribution extends Component {
     this.setState({
       currentlyInPlay: {
         playerA: key, 
-        playerB: this.state.gameState.cardsPlayed[(this.state.myIndex + 1) % 4] ? parseCardToImageString(this.state.gameState.cardsPlayed[(this.state.myIndex + 1) % 4]) : 'flipped', 
-        playerC: this.state.gameState.cardsPlayed[(this.state.myIndex + 2) % 4] ? parseCardToImageString(this.state.gameState.cardsPlayed[(this.state.myIndex + 2) % 4]) : 'flipped', 
-        playerD: this.state.gameState.cardsPlayed[(this.state.myIndex + 3) % 4] ? parseCardToImageString(this.state.gameState.cardsPlayed[(this.state.myIndex + 3) % 4]) : 'flipped',
+        playerD: this.state.gameState.cardsPlayed[(this.state.myIndex + 1) % 4] ? parseCardToImageString(this.state.gameState.cardsPlayed[(this.state.myIndex + 1) % 4]) : 'flipped',
+        playerC: this.state.gameState.cardsPlayed[(this.state.myIndex + 2) % 4] ? parseCardToImageString(this.state.gameState.cardsPlayed[(this.state.myIndex + 2) % 4]) : 'flipped',
+        playerB: this.state.gameState.cardsPlayed[(this.state.myIndex + 3) % 4] ? parseCardToImageString(this.state.gameState.cardsPlayed[(this.state.myIndex + 3) % 4]) : 'flipped',
       },
       hands: {
         playerA: current_cards, 
@@ -163,6 +164,10 @@ class InitDistribution extends Component {
       myTurn: false,
     });
     this.props.updateGameState(this.state.cardsMapping[key]);
+  }
+
+  triggerNextTrick() {
+    this.props.updateGameState(null);
   }
 
   render() {
@@ -180,18 +185,24 @@ class InitDistribution extends Component {
           </div>
           
           <div className="playerB">
-            <Hand hide={true} disabled={true} layout={"spread"} cards={this.state.hands.playerB} cardSize={ 100 }/>          
+            <Hand hide={true} disabled={true} layout={"fan"} cards={this.state.hands.playerB} cardSize={ 100 }/>          
           </div>
           
           <div className="playerC">
-            <Hand hide={true} disabled={true} layout={"spread"} cards={this.state.hands.playerC} cardSize={ 100 }/>
+            <Hand hide={true} disabled={true} layout={"fan"} cards={this.state.hands.playerC} cardSize={ 100 }/>
           </div>
           
           <div className="playerD">
-            <Hand hide={true} disabled={true} layout={"spread"} cards={this.state.hands.playerD} cardSize={ 100 }/> 
+            <Hand hide={true} disabled={true} layout={"fan"} cards={this.state.hands.playerD} cardSize={ 100 }/> 
           </div>
 
           <div className="actionContainer">
+            {this.state.gameState?.playerStartsTrick[this.state?.myIndex] && !this.state.gameState?.cardsPlayed.includes(null)
+              ? <Button onClick={() => this.triggerNextTrick()}>
+                  Next trick
+                </Button>
+              : <></>
+            }
             <div className="actionChildContainer" ref={this.refPlayArea}>
               <div className="playerAcardSpot" ref={this.refASpot}>
                 <PlayingCard

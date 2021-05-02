@@ -223,39 +223,38 @@ const Game = (props) => {
   }, []);
 
   useSubscription(`/games/${gameId}/fetch`, async msg => {
-    await setAttrValues(ingameModes, () => console.log({gameState}));
-    console.log({gameState});
+    await setAttrValues(ingameModes, () => {console.log({gameState})});
   });
 
-    return (
-      <BackgroundContainer>
-        <Dialog open={openModePopUp} onClose={handleToClose}>
-           <DialogTitle>{"Please choose in-game mode"}</DialogTitle>
-           <List>
-             {ingameModes.map((gameMode, index) => (
-               <ListItem key={index} button onClick={() => handleListItemClick(gameMode)}>
-                 <div><img src={gameMode.value} height={'30px'} width={'40px'} margin={'5px'}/></div>
-                 <ListItemText primary={gameMode.text} />
-               </ListItem>
-             ))}
-            </List>
-          </Dialog>
-          {(myIndex !== null)
-            ? <InitDistribution 
-                gameState={gameState} 
-                updateGameState={updateGameState}
-                myIndex={myIndex}
-              />
-            : <></>
-          }
-          <CurrentModeContainer>
-          <Label>
-              Current Mode: 
-              <div><img src={currentInGameMode.value} height={'30px'} width={'40px'} margin={'5px'}/></div>
-              <input disabled={true} type={"text"} value={currentInGameMode.text} />
-          </Label>
-        </CurrentModeContainer>
-      </BackgroundContainer>
-    );
+  return (
+    <BackgroundContainer>
+      <Dialog open={openModePopUp} onClose={handleToClose}>
+         <DialogTitle>{"Please choose in-game mode"}</DialogTitle>
+         <List>
+           {ingameModes.map((gameMode, index) => (
+             <ListItem key={index} button onClick={() => handleListItemClick(gameMode)}>
+               <div><img src={gameMode.value} height={'30px'} width={'40px'} margin={'5px'}/></div>
+               <ListItemText primary={gameMode.text} />
+             </ListItem>
+           ))}
+          </List>
+        </Dialog>
+        {(myIndex !== null)
+          ? <InitDistribution 
+              gameState={gameState} 
+              updateGameState={updateGameState}
+              myIndex={myIndex}
+            />
+          : <></>
+        }
+        <CurrentModeContainer>
+        <Label>
+            Current Mode: 
+            <div><img src={currentInGameMode.value} height={'30px'} width={'40px'} margin={'5px'}/></div>
+            <input disabled={true} type={"text"} value={currentInGameMode.text} />
+        </Label>
+      </CurrentModeContainer>
+    </BackgroundContainer>
+  );
 }
 export default withRouter(Game);
