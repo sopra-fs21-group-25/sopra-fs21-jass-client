@@ -70,7 +70,7 @@ class InitDistribution extends Component {
         playerC: Array(9).fill('flipped'), 
         playerD: Array(9).fill('flipped'),
       },
-      gameState: this.props.gameState,
+      //gameState: this.props.gameState,
       cardsMapping: Object.fromEntries(this.props.gameState.cardsOfPlayer.map(x => [parseCardToImageString(x), x])),
       myTurn: false,
       myIndex: this.props.myIndex,
@@ -85,21 +85,21 @@ class InitDistribution extends Component {
     this.getPlayAreaBounds = this.getPlayAreaBounds.bind(this);
   }
 
-  static getDerivedStateFromProps(props, state) {
-    const { prevProps } = state;
-    if (prevProps.gameState !== props.gameState || prevProps.myIndex !== props.myIndex) {
-      return {
-        gameState: props.gameState,
-        myIndex: props.myIndex,
-        prevProps: props
-      }
-    }
-    return {
-        prevProps: props
-    }
-  }
-
-  componentDidMount() {
+  // static getDerivedStateFromProps(props, state) {
+  //   const { prevProps } = state;
+  //   if (prevProps.gameState !== props.gameState || prevProps.myIndex !== props.myIndex) {
+  //     //this.setState({gameState: this.props.gameState});
+  //     return {
+  //       gameState: props.gameState,
+  //       myIndex: props.myIndex,
+  //       prevProps: props
+  //     }
+  //   }
+  //   return {
+  //       prevProps: props
+  //   }
+  // }
+  updateCardsOnTable(){
     if (this.state.gameState.cardsPlayed[(this.state.myIndex + 3) % 4] || this.state.gameState.playerStartsTrick[this.state.myIndex]) {
       this.setState({myTurn: true});
     }
@@ -121,10 +121,18 @@ class InitDistribution extends Component {
       if (this.state.currentlyInPlay.playerC != 'flipped') {
         this.refCSpot.current.style.display = "flex";
       }
-      if (this.state.currentlyInPlay.playerC != 'flipped') {
-        this.refCSpot.current.style.display = "flex";
+      if (this.state.currentlyInPlay.playerD != 'flipped') {
+        this.refDSpot.current.style.display = "flex";
       }
     });
+  };
+  componentDidUpdate(){
+    if(this.state.gameState != this.props.gameState){
+      this.setState({gameState: this.props.gameState}, () => this.updateCardsOnTable());
+    }
+  }
+  componentDidMount() {
+    this.setState({gameState: this.props.gameState}, () => this.updateCardsOnTable());
   }
 
   getPlayAreaBounds = () => {
