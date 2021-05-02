@@ -198,6 +198,7 @@ const Game = (props) => {
 
   const setAttrValues = async (modes) =>{
     var response = await api.get(`/games/${gameId}/${user.id}`);
+    setGameState(response.data);
     if(response.data.currentIngameMode){
         var mode = modes.find((element, index, array) => {
           return element.text.includes(response.data.currentIngameMode);
@@ -222,7 +223,8 @@ const Game = (props) => {
   }, []);
 
   useSubscription(`/games/${gameId}/fetch`, async msg => {
-    await setAttrValues(ingameModes);
+    await setAttrValues(ingameModes, () => console.log({gameState}));
+    console.log({gameState});
   });
 
     return (

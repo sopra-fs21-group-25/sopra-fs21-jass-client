@@ -202,8 +202,8 @@ class SchieberCreator extends React.Component {
 
   async submit() {
     try {
-      const myId = JSON.parse(localStorage.getItem('user')).id;
-      const myUsername = JSON.parse(localStorage.getItem('user')).username;
+      const myId = JSON.parse(sessionStorage.getItem('user')).id;
+      const myUsername = JSON.parse(sessionStorage.getItem('user')).username;
 
       const response = await api.get(`/users/${myId}`)
       const user = response.data;
