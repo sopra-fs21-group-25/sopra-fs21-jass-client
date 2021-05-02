@@ -102,7 +102,9 @@ class InitDistribution extends Component {
   // }
   updateCardsOnTable(){
     if (this.state.gameState.cardsPlayed[(this.state.myIndex + 3) % 4] || this.state.gameState.playerStartsTrick[this.state.myIndex]) {
-      this.setState({myTurn: true});
+      if (this.state.gameState?.cardsPlayed.includes(null)) {
+        this.setState({myTurn: true});
+      }
     }
 
     this.setState({
@@ -128,8 +130,14 @@ class InitDistribution extends Component {
     });
   };
   componentDidUpdate(){
-    if(this.state.gameState != this.props.gameState){
+    if (this.state.gameState != this.props.gameState) {
       this.setState({gameState: this.props.gameState}, () => this.updateCardsOnTable());
+    }
+    if (this.state.gameState?.cardsPlayed.every(element => element === null)) {
+      this.refASpot.current.style.display = "none";
+      this.refBSpot.current.style.display = "none";
+      this.refCSpot.current.style.display = "none";
+      this.refDSpot.current.style.display = "none";
     }
   }
   componentDidMount() {
@@ -167,10 +175,6 @@ class InitDistribution extends Component {
   }
 
   triggerNextTrick() {
-    this.refASpot.current.style.display = "none";
-    this.refBSpot.current.style.display = "none";
-    this.refCSpot.current.style.display = "none";
-    this.refDSpot.current.style.display = "none";
     this.props.updateGameState(null);
   }
 

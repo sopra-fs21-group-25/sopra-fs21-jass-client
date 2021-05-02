@@ -16,6 +16,10 @@
 	align-items: center;
 }
 
+div.playerA > div {
+	height: 70% !important;
+}
+
 .playerB {
 	grid-column-start: 1;
   	grid-column-end: 1;
@@ -78,7 +82,6 @@ div.playerD > div {
 }
 
 .actionChildContainer {
-	z-index: -1;
 	margin: auto;
     position: relative;
     --width: 30em;
@@ -99,10 +102,6 @@ div.playerD > div {
   	grid-row-start: 1;
   	grid-row-end: 1;
  	text-align: center;
-}
-
-div.nextTrickButton button {
-	justify-content: center;
 }
 
 .playerAcardSpot {
