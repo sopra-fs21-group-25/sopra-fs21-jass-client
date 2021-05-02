@@ -229,31 +229,31 @@ const Game = (props) => {
   return (
     <BackgroundContainer>
       <Dialog open={openModePopUp} onClose={handleToClose}>
-         <DialogTitle>{"Please choose in-game mode"}</DialogTitle>
-         <List>
-           {ingameModes.map((gameMode, index) => (
-             <ListItem key={index} button onClick={() => handleListItemClick(gameMode)}>
-               <div><img src={gameMode.value} height={'30px'} width={'40px'} margin={'5px'}/></div>
-               <ListItemText primary={gameMode.text} />
-             </ListItem>
-           ))}
-          </List>
-        </Dialog>
-        {(myIndex !== null)
-          ? <InitDistribution 
-              gameState={gameState} 
-              updateGameState={updateGameState}
-              myIndex={myIndex}
-            />
-          : <></>
-        }
-        <CurrentModeContainer>
-        <Label>
-            Current Mode: 
-            <div><img src={currentInGameMode.value} height={'30px'} width={'40px'} margin={'5px'}/></div>
-            <input disabled={true} type={"text"} value={currentInGameMode.text} />
+        <DialogTitle>{"Please choose in-game mode"}</DialogTitle>
+        <List>
+          {ingameModes.map((gameMode, index) => (
+           <ListItem key={index} button onClick={() => handleListItemClick(gameMode)}>
+             <div><img src={gameMode.value} height={'30px'} width={'40px'} margin={'5px'}/></div>
+             <ListItemText primary={gameMode.text} />
+           </ListItem>
+          ))}
+        </List>
+      </Dialog>
+      <CurrentModeContainer style={{position: "absolute", top: "3em", left: "3em"}}>
+        <Label style={{backgroundColor: "white", textAlign: "center"}}>
+          Current Mode: 
+          <div><img src={currentInGameMode.value} height={'30px'} width={'40px'} margin={'5px'}/></div>
+          <input style={{textAlign: "center"}} disabled={true} type={"text"} value={currentInGameMode.text} />
         </Label>
       </CurrentModeContainer>
+      {(myIndex !== null)
+        ? <InitDistribution 
+            gameState={gameState} 
+            updateGameState={updateGameState}
+            myIndex={myIndex}
+          />
+        : <></>
+      }
     </BackgroundContainer>
   );
 }
