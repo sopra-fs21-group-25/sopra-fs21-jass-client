@@ -167,6 +167,10 @@ class InitDistribution extends Component {
   }
 
   triggerNextTrick() {
+    this.refASpot.current.style.display = "none";
+    this.refBSpot.current.style.display = "none";
+    this.refCSpot.current.style.display = "none";
+    this.refDSpot.current.style.display = "none";
     this.props.updateGameState(null);
   }
 
@@ -197,13 +201,15 @@ class InitDistribution extends Component {
           </div>
 
           <div className="actionContainer">
-            {this.state.gameState?.playerStartsTrick[this.state?.myIndex] && !this.state.gameState?.cardsPlayed.includes(null)
-              ? <Button onClick={() => this.triggerNextTrick()}>
-                  Next trick
-                </Button>
-              : <></>
-            }
             <div className="actionChildContainer" ref={this.refPlayArea}>
+              <div className="nextTrickButton">
+                {this.state.gameState?.playerStartsTrick[this.state?.myIndex] && !this.state.gameState?.cardsPlayed.includes(null)
+                  ? <Button onClick={() => this.triggerNextTrick()}>
+                      Next trick
+                    </Button>
+                  : <></>
+                }
+              </div>
               <div className="playerAcardSpot" ref={this.refASpot}>
                 <PlayingCard
                   key={"playerA"}
