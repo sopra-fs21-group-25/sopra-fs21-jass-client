@@ -8,7 +8,7 @@
     "axios": "^0.21.1",
     "bootstrap": "^4.6.0",
     "chokidar": "^3.0.0",
-    "immutable": "*",
+    "immutable": "^4.0.0-rc.12",
     "react": "^17.0.1",
     "react-bootstrap": "^1.5.2",
     "react-contextmenu": "^2.14.0",
