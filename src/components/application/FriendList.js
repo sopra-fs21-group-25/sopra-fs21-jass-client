@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { api, handleError } from '../../helpers/api';
 import { Button } from '../../views/design/Button';
 import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
+import {getDomain} from "../../helpers/getDomain";
 
 import './css/friendlist.css';
 
@@ -46,7 +47,7 @@ class FriendList extends React.Component {
     });
   }
   startEventSource(user_id) {
-    this.eventSource = new EventSource(`http://localhost:8080/friend_requests/event/` + user_id);
+    this.eventSource = new EventSource(`${getDomain()}/friend_requests/event/${user_id}`);
     this.eventSource.addEventListener('error', (e) => {
       console.log("An error occurred while attempting to connect.");
     }); 
