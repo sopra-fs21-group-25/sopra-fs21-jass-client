@@ -1,7 +1,8 @@
 import React from 'react';
 import styled from 'styled-components';
 import { UserType } from '../shared/models/UserType';
-import {BackgroundContainer, LargeButtonContainer} from "../../helpers/layout";
+import {BackgroundContainer, BackgroundContainerNoImage, LargeButtonContainer} from "../../helpers/layout";
+import {Background} from "../../views/design/background/Background";
 import { BaseContainer } from '../../helpers/layout';
 import { api, handleError } from '../../helpers/api';
 import { Spinner } from '../../views/design/Spinner';
@@ -142,66 +143,68 @@ class Menu extends React.Component {
 
   render() {
     return (
-        <BackgroundContainer style={{flexDirection: 'row'}}>
-          <InvitationInjector userId={this.state.user?.id}/>
-          <Container width={'35%'}>
-            <GametableButtonContainer>
-              <LargeButtonContainer>
-                <Button onClick={() => this.props.history.push('/create')}>
-                  Create Game Table
-                </Button>
-              </LargeButtonContainer>
-              <LargeButtonContainer>
-                <Button
-                    onClick={() =>
-                        this.props.history.push({
-                              pathname: '/join',
-                              state: {user: this.state.user}
-                            }
-                        )}
-                >
-                  Join Game Table
-                </Button>
-              </LargeButtonContainer>
-            </GametableButtonContainer>
-          </Container>
-          <Container width={'25%'}>
-            <Form>
-              <InputField
-                  placeholder={'Search users...'}
-                  id="mainSearch"
-                  onKeyUp={this.filterMainSearch}
-              />
-              <div className="list-container">
-                <h2 style={{borderBottom: "1px solid black"}}>All users</h2>
-                <ul>
-                  {this.state.users.map((user, index) => {
-                    return  <li key={index}>
-                      <ContextMenuTrigger id={index.toString()}>
-                        <a title="user">
-                          {user.status == 'ONLINE' && <div className='circle-green float-child-1'></div>}
-                          {user.status == 'OFFLINE' && <div className='circle-red float-child-1'></div>}
-                          <div>{user.username}</div>
-                        </a>
-                      </ContextMenuTrigger>
-                      <ContextMenu id={index.toString()}>
-                        <MenuItem onClick={()=>this.sendFriendRequest(user.id)}>
-                          <span>Send friend request</span>
-                        </MenuItem>
-                        <MenuItem>
-                          <span>Invite to the game</span>
-                        </MenuItem>
-                      </ContextMenu>
-                    </li>
-                  })}
-                </ul>
-              </div>
-            </Form>
-          </Container>
-          <Container width={'40%'}>
-            <FriendList></FriendList>
-          </Container>
-        </BackgroundContainer>
+        <Background>
+          <BackgroundContainerNoImage style={{flexDirection: 'row'}}>
+            <InvitationInjector userId={this.state.user?.id}/>
+            <Container width={'35%'}>
+              <GametableButtonContainer>
+                <LargeButtonContainer>
+                  <Button onClick={() => this.props.history.push('/create')}>
+                    Create Game Table
+                  </Button>
+                </LargeButtonContainer>
+                <LargeButtonContainer>
+                  <Button
+                      onClick={() =>
+                          this.props.history.push({
+                                pathname: '/join',
+                                state: {user: this.state.user}
+                              }
+                          )}
+                  >
+                    Join Game Table
+                  </Button>
+                </LargeButtonContainer>
+              </GametableButtonContainer>
+            </Container>
+            <Container width={'25%'}>
+              <Form>
+                <InputField
+                    placeholder={'Search users...'}
+                    id="mainSearch"
+                    onKeyUp={this.filterMainSearch}
+                />
+                <div className="list-container">
+                  <h2 style={{borderBottom: "1px solid black"}}>All users</h2>
+                  <ul>
+                    {this.state.users.map((user, index) => {
+                      return  <li key={index}>
+                        <ContextMenuTrigger id={index.toString()}>
+                          <a title="user">
+                            {user.status == 'ONLINE' && <div className='circle-green float-child-1'></div>}
+                            {user.status == 'OFFLINE' && <div className='circle-red float-child-1'></div>}
+                            <div>{user.username}</div>
+                          </a>
+                        </ContextMenuTrigger>
+                        <ContextMenu id={index.toString()}>
+                          <MenuItem onClick={()=>this.sendFriendRequest(user.id)}>
+                            <span>Send friend request</span>
+                          </MenuItem>
+                          <MenuItem>
+                            <span>Invite to the game</span>
+                          </MenuItem>
+                        </ContextMenu>
+                      </li>
+                    })}
+                  </ul>
+                </div>
+              </Form>
+            </Container>
+            <Container width={'40%'}>
+              <FriendList></FriendList>
+            </Container>
+          </BackgroundContainerNoImage>
+        </Background>
     );
   }
 }

@@ -17,6 +17,17 @@ export const BaseContainer = styled('div')({
   paddingRight: '15px',
 });
 
+export const BackgroundContainerNoImage = styled('div')({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  position: 'fixed',
+  width: '100%',
+  height: '100%',
+  zIndex: 1,
+  backgroundColor: 'rgba(0, 0, 0, 0)'
+});
+
 export const BackgroundContainer = styled('div')({
   display: 'flex',
   alignItems: 'center',

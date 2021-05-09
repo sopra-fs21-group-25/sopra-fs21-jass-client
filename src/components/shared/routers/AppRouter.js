@@ -12,6 +12,7 @@ import Register from "../../register/Register";
 import JoinPage from "../../application/JoinPage";
 import GameTestPage from "../../application/GameTestPage";
 import Game from '../../game/Game';
+import GamePlus from "../../game/GamePlus";
 
 /**
  * Main router of your application.
@@ -84,8 +85,8 @@ class AppRouter extends React.Component {
             <Route
                 path="/game/:id"
                 exact
-                render={() => (
-                    <Game />
+                render={props => (
+                    <GamePlus initialGameState={{...props.location.state}}/>
                 )}
             />
         </Switch>

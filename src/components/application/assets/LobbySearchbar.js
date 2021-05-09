@@ -21,7 +21,8 @@ const SearchListContainer = styled('div')({
   overflowX: 'hidden',
   overflowY: 'auto',
   paddingLeft: '10px',
-  paddingRight: '10px'
+  paddingRight: '10px',
+  zIndex: 8
 });
 
 const OuterSearchbarContainer = styled('div')({
