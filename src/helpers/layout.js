@@ -46,8 +46,7 @@ export const BackgroundContainerLogin = styled('div')({
   position: 'fixed',
   width: '100%',
   height: '100%',
-  backgroundImage: `url(${restaurant})`,
-  backgroundSize: 'cover'
+  zIndex: 1
 });
 
 export const BackgroundContainerRegister = styled('div')({

@@ -1,6 +1,6 @@
 $bubble-count: 50;
 $sway-type: "sway-left-to-right", "sway-right-to-left";
-$icon-type-url: url('acorn-styled-tiny.png'), url('rose-styled-tiny.png'), url('bell-styled-tiny.png'), url('shield-styled-tiny.png');
+$icon-type-url: url('acorn-styled-bold.png'), url('rose-styled-bold.png'), url('bell-styled-bold.png'), url('shield-styled-bold.png');
 
 @function random_range($min, $max) {
   $rand: random();
@@ -23,10 +23,10 @@ $icon-type-url: url('acorn-styled-tiny.png'), url('rose-styled-tiny.png'), url('
   position: absolute;
   transform: rotate(var(--bubble-rotation)) scale(var(--bubble-scalor));
   left: var(--bubble-left-offset);
-  bottom: -20%;
+  bottom: -30%;
   display: block;
-  width: 3vw;
-  height: 3vw;
+  width: 5vw;
+  height: 5vw;
   animation: float-up var(--bubble-float-duration) var(--bubble-float-delay) ease-in infinite;
 
   &::before {
@@ -47,12 +47,12 @@ $icon-type-url: url('acorn-styled-tiny.png'), url('rose-styled-tiny.png'), url('
       --bubble-left-offset: #{random_range(0vw, 100vw)};
       --bubble-float-duration: #{random_range(25s, 50s)};
       --bubble-sway-duration: #{random_range(4s, 10s)};
-      --bubble-float-delay: #{random_range(0s, 20s)};
+      --bubble-float-delay: #{random_range(0s, 50s)};
       --bubble-sway-delay: #{random_range(0s, 10s)};
       --bubble-sway-type: #{sample($sway-type)};
       --bubble-icon-url: #{sample($icon-type-url)};
       --bubble-rotation: #{random_range(-45deg, 45deg)};
-      --bubble-scalor: #{random_range(1.5, 2.5)};
+      --bubble-scalor: #{random_range(0.9, 1.1)};
     }
   }
 }
@@ -60,7 +60,7 @@ $icon-type-url: url('acorn-styled-tiny.png'), url('rose-styled-tiny.png'), url('
 
 @keyframes float-up {
   to {
-    transform: translateY(-120vh);
+    transform: translateY(-130vh);
   }
 }
 

@@ -3,79 +3,78 @@ import styled from 'styled-components';
 import { api, handleError } from '../../helpers/api';
 import User from '../shared/models/User';
 import { withRouter } from 'react-router-dom';
-import { Button } from '../../views/design/Button';
 import { BackgroundContainerLogin} from "../../helpers/layout";
+import {Background} from "../../views/design/background/Background";
 import {UserType} from "../shared/models/UserType";
+import {IconicInput, GlowButton} from "../../views/design/ElegantAssets";
 
 const Title = styled.div`
-  font-size: 8em;
-  vertical-align: top;
-  color: goldenrod;
-  flex-direction: row;
-  font-family: Bungee Inline;
-  justify-content: center;
-  text-align: center;
-`;
-
-const InputField = styled.input`
-  &::placeholder {
-    color: black;
-  }
-  height: 35px;
-  padding-left: 15px;
-  margin-left: -4px;
-  border: none;
-  border-radius: 20px;
-  margin-bottom: 20px;
-  background: rgba(255, 255, 255, 0.6);
-  color: black;
-  vertical-align: top;
+  font-size: 20vmin;
+  color: #dddddd;
+  font-family: 'Satisfy', cursive;
   display: flex;
-  flex-direction: row;
-  justify-content: center;
-    padding: 6px;
-  font-weight: 700;
-  font-size: 15px;
-  width: 100%;
-  height: ${props => props.height || null};
-  border-radius: 5px;
+  flex-direction: column;
 `;
 
-const Label = styled.label`
-  color: white;
-  margin-bottom: 10px;
-  text-transform: uppercase;
-`;
+const TitleSaliSpan = styled.span`
+  font-weight: 600;
+  font-size: 0.8em;
+  padding-right: 10%;
+  color: #dddddd;
+`
+
+const TitleStubliSpan = styled.span`
+  font-weight: 700;
+  font-size: 1.2em;
+  padding-left: 10%;
+  transform: translateY(-25%);
+  text-shadow: -0.08em 0.08em 0.01em #494949;
+`
+
+
+
 
 const TitleBox = styled.div`
-  grid-column: 1 / 4;
-  grid-row: 1 ;  
-  align-self: center;
+  grid-column: 1 / span 3;
+  grid-row: 1;  
+  align-self: end;
+  justify-self: center;
 `;
 
 
 const RegisterBox = styled.div`
   grid-column: 1;
-  grid-row: 2 ; 
-  align-self: center; 
+  grid-row: 2 ;
+  align-self: end;
+  padding-bottom: 35%;
+  display: flex;
+  justify-content: center;
 `;
 
 const UserLoginBox = styled.div`
   grid-column: 2;
-  grid-row: 2 ;
+  grid-row: 2;
+  align-self: end;
+  padding-bottom: 20%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 `;
 
 const GuestBox = styled.div`
   grid-column: 3;
-  grid-row: 2 ; 
-  align-self: center;
+  grid-row: 2 ;
+  align-self: end;
+  padding-bottom: 35%;
+  display: flex;
+  justify-content: center;
 `;
 
 const LoginWrapper = styled.div`
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-gap: 100px;
-  grid-auto-rows: minmax(100px, auto)
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-gap: 10vh;
+  grid-template-rows: 2fr 1fr;
 `;
 
 /**
@@ -185,64 +184,53 @@ class Login extends React.Component {
 
   render() {
     return (
-      <BackgroundContainerLogin>
-        <LoginWrapper>
-          <TitleBox>
-            <Title>Sali im Stübli</Title>
-          </TitleBox>
-          <RegisterBox>
-            <Label>Register as a new User</Label>
-             <Button
-                  width="50%"
-                  onClick={() => {
-                  this.register();
-                }}
-             >
-              Register
-             </Button>
-          </RegisterBox>
-          <UserLoginBox>
-            <Label>Username</Label>
-            <InputField
-              placeholder="Enter here.."
-              required
-              onChange={e => {
-                this.handleInputChange('username', e.target.value);
-              }}
-            />
-            <Label>Password</Label>
-            <InputField
-              placeholder="Enter here.."
-              required
-              type="password"
-              onChange={e => {
-                this.handleInputChange('password', e.target.value);
-              }}
-              onKeyPress={e => e.key === 'Enter' && this.login()}
-            />
-            <Button
-              disabled={!this.state.username || !this.state.password}
-              width="50%"
-              onClick={() => {
-                this.login();
-              }}
-            >
-              Login
-            </Button>
-          </UserLoginBox>
-          <GuestBox>
-            <Label>Enter as a Guest</Label>
-            <Button
-                width="50%"
-                onClick={() => {
-                this.guestLogin();
-              }}
-           >
-             Enter
-            </Button>
-          </GuestBox>
-        </LoginWrapper>
-      </BackgroundContainerLogin>
+        <Background>
+          <BackgroundContainerLogin>
+            <LoginWrapper>
+              <TitleBox>
+                <Title>
+                  <TitleSaliSpan>Sali <span style={{fontWeight: 100, fontSize: '0.6em'}}>im</span></TitleSaliSpan>
+                  <TitleStubliSpan>Stübli</TitleStubliSpan>
+                </Title>
+              </TitleBox>
+              <RegisterBox>
+                <GlowButton onClick={() => this.register()}>register</GlowButton>
+              </RegisterBox>
+              <UserLoginBox>
+                <IconicInput
+                    type={'text'}
+                    placeholder={'username...'}
+                    onChange={e => this.handleInputChange('username', e.target.value)}
+                    defaultIcon={'person_outline'}
+                    highlightIcon={'person'}
+                    defaultIconColor={'rgba(221, 221, 221, 0.5)'}
+                    highlightIconColor={'rgba(221, 221, 221, 0.9)'}
+                />
+                <IconicInput
+                    type={'password'}
+                    placeholder={'password...'}
+                    onChange={e => this.handleInputChange('password', e.target.value)}
+                    defaultIcon={'lock_outlined'}
+                    highlightIcon={'lock'}
+                    defaultIconColor={'rgba(221, 221, 221, 0.5)'}
+                    highlightIconColor={'rgba(221, 221, 221, 0.9)'}
+                />
+                <GlowButton
+                    style={{marginTop: '1rem'}}
+                    disabled={!this.state.username || !this.state.password}
+                    onClick={() => {
+                      this.login();
+                    }}
+                >
+                  login
+                </GlowButton>
+              </UserLoginBox>
+              <GuestBox>
+                <GlowButton onClick={() => this.guestLogin()}>guest entry</GlowButton>
+              </GuestBox>
+            </LoginWrapper>
+          </BackgroundContainerLogin>
+        </Background>
     );
   }
 }
