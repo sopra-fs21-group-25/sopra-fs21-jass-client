@@ -1,7 +1,14 @@
 import Select from "react-select";
 import {Button} from "../../../views/design/Button";
 import React from "react";
-import {BackgroundContainer, JassboardContainer, TextContainer, InnerContainer, Container} from "../../../helpers/layout";
+import {
+  BackgroundContainer,
+  JassboardContainer,
+  TextContainer,
+  InnerContainer,
+  Container,
+  CheckboxContainerColumn
+} from "../../../helpers/layout";
 import acorn from "../../../views/images/icons/acorn.png";
 import rose from "../../../views/images/icons/rose.png";
 import bell from "../../../views/images/icons/bell.png";
@@ -12,6 +19,7 @@ import slalom from "../../../views/images/icons/slalom.png";
 import gusti from "../../../views/images/icons/gusti.png";
 import mary from "../../../views/images/icons/mary.png";
 import {withRouter} from "react-router-dom";
+import {UserType} from "../../shared/models/UserType";
 /**
  * TODO: implement CoiffeurCreator correctly
  */
@@ -200,17 +208,19 @@ class CoiffeurCreator extends React.Component {
                   />
                 </TextContainer>
               </label>
-              <label style={checkboxLabelStyle}>
-                <TextContainer>
-                  Friends
-                  <input
-                      name={'Friends-only'}
-                      type={'checkbox'}
-                      checked={this.state.lobbyType == 'friends'}
-                      onChange={() => this.handleChange('lobbyType', 'friends')}
-                  />
-                </TextContainer>
-              </label>
+              {JSON.parse(sessionStorage.getItem('user')).userType !== UserType.GUEST &&
+                <label style={checkboxLabelStyle}>
+                  <TextContainer>
+                    Friends
+                    <input
+                        name={'Friends-only'}
+                        type={'checkbox'}
+                        checked={this.state.lobbyType == 'friends'}
+                        onChange={() => this.handleChange('lobbyType', 'friends')}
+                    />
+                  </TextContainer>
+                </label>
+              }
               <label style={checkboxLabelStyle}>
                 <TextContainer>
                   Public

@@ -90,9 +90,11 @@ const JoinPage = () => {
           <Tab.Container id={'lobbyTypeTabs'} defaultActiveKey={'public'} style={{height: '100%'}}>
             <Col style={{height: 'inherit', padding: 0}}>
               <Nav justify={true} variant={'tabs'}>
-                <Nav.Item>
-                  <Nav.Link eventKey={'friends'} disabled={user.userType === 'GuestUser'}>Friends' Tables</Nav.Link>
-                </Nav.Item>
+                {user.userType !== 'GuestUser' &&
+                  <Nav.Item>
+                    <Nav.Link eventKey={'friends'}>Friends' Tables</Nav.Link>
+                  </Nav.Item>
+                }
                 <Nav.Item>
                   <Nav.Link eventKey={'public'}>Public Tables</Nav.Link>
                 </Nav.Item>

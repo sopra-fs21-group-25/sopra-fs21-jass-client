@@ -12,6 +12,7 @@ import slalom from "../../../views/images/icons/slalom.png";
 import gusti from "../../../views/images/icons/gusti.png";
 import mary from "../../../views/images/icons/mary.png";
 import {withRouter} from "react-router-dom";
+import {UserType} from "../../shared/models/UserType";
 
 /**
  * TODO: implement BieterCreator correctly
@@ -201,17 +202,19 @@ class BieterCreator extends React.Component {
                   />
                 </TextContainer>
               </label>
-              <label style={checkboxLabelStyle}>
-                <TextContainer>
-                  Friends
-                  <input
-                      name={'Friends-only'}
-                      type={'checkbox'}
-                      checked={this.state.lobbyType == 'friends'}
-                      onChange={() => this.handleChange('lobbyType', 'friends')}
-                  />
-                </TextContainer>
-              </label>
+              {JSON.parse(sessionStorage.getItem('user')).userType !== UserType.GUEST &&
+                <label style={checkboxLabelStyle}>
+                  <TextContainer>
+                    Friends
+                    <input
+                        name={'Friends-only'}
+                        type={'checkbox'}
+                        checked={this.state.lobbyType == 'friends'}
+                        onChange={() => this.handleChange('lobbyType', 'friends')}
+                    />
+                  </TextContainer>
+                </label>
+              }
               <label style={checkboxLabelStyle}>
                 <TextContainer>
                   Public

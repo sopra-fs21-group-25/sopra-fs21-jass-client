@@ -87,6 +87,7 @@ class Menu extends React.Component {
     super(props);
     this.stompClient = props.stompClient;
     this.state = {
+      isGuest: false,
       user: null,
       users: []
     };
@@ -119,6 +120,7 @@ class Menu extends React.Component {
       this.setState({
         users: response.data
       }, console.log(this.state));
+      this.setState({isGuest: this.state.user.userType === UserType.GUEST});
     });
   }
 
@@ -186,9 +188,11 @@ class Menu extends React.Component {
                         </a>
                       </ContextMenuTrigger>
                       <ContextMenu id={index.toString()}>
-                        <MenuItem onClick={()=>this.sendFriendRequest(user.id)}>
-                          <span>Send friend request</span>
-                        </MenuItem>
+                        {user.userType !== "GuestUser" &&
+                          <MenuItem onClick={() => this.sendFriendRequest(user.id)}>
+                            <span>Send friend request</span>
+                          </MenuItem>
+                        }
                         <MenuItem>
                           <span>Invite to the game</span>
                         </MenuItem>
@@ -200,7 +204,9 @@ class Menu extends React.Component {
             </Form>
           </Container>
           <Container width={'40%'}>
-            <FriendList></FriendList>
+            {!this.state.isGuest &&
+              <FriendList></FriendList>
+            }
           </Container>
         </BackgroundContainer>
     );

@@ -13,6 +13,7 @@ import gusti from "../../../views/images/icons/gusti.png";
 import mary from "../../../views/images/icons/mary.png";
 import {Redirect, withRouter} from "react-router-dom";
 import {api} from "../../../helpers/api";
+import {UserType} from "../../shared/models/UserType";
 
 /**
  * Different style objects
@@ -258,17 +259,19 @@ class SchieberCreator extends React.Component {
                   />
                 </CheckboxContainerColumn>
               </label>
-              <label style={checkboxLabelStyle}>
-                <CheckboxContainerColumn>
-                  Friends
-                  <input
-                      name={'Friends-only'}
-                      type={'checkbox'}
-                      checked={this.state.lobbyType == 'friends'}
-                      onChange={() => this.handleChange('lobbyType', 'friends')}
-                  />
-                </CheckboxContainerColumn>
-              </label>
+              {JSON.parse(sessionStorage.getItem('user')).userType !== UserType.GUEST &&
+                <label style={checkboxLabelStyle}>
+                  <CheckboxContainerColumn>
+                    Friends
+                    <input
+                        name={'Friends-only'}
+                        type={'checkbox'}
+                        checked={this.state.lobbyType == 'friends'}
+                        onChange={() => this.handleChange('lobbyType', 'friends')}
+                    />
+                  </CheckboxContainerColumn>
+                </label>
+              }
               <label style={checkboxLabelStyle}>
                 <CheckboxContainerColumn>
                   Public
