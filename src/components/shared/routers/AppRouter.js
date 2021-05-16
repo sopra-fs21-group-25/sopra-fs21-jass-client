@@ -13,6 +13,8 @@ import JoinPage from "../../application/JoinPage";
 import GameTestPage from "../../application/GameTestPage";
 import Game from '../../game/Game';
 import GamePlus from "../../game/GamePlus";
+import {ProfilePageGuard} from "../routeProtectors/ProfilePageGuard";
+import ProfilePage from "../../profile/ProfilePage";
 
 /**
  * Main router of your application.
@@ -67,6 +69,15 @@ class AppRouter extends React.Component {
                 //   <Login />
                 // </LoginGuard>
               )}
+            />
+            <Route
+                path="/profile"
+                exact
+                render={() => (
+                    <ProfilePageGuard>
+                      <ProfilePage />
+                    </ProfilePageGuard>
+                )}
             />
             <Route
                 path="/register"

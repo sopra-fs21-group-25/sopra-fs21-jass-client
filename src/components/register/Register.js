@@ -165,7 +165,7 @@ class Register extends React.Component {
                         />
                         <ButtonWrapper>
                             <Button
-                                width="50%"
+                                width="50%"f
                                 onClick={() => {
                                     this.props.history.push(`/login`);
                             }}>
