@@ -1,210 +1,157 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import styled from 'styled-components';
-import { UserType } from '../shared/models/UserType';
-import {BackgroundContainer, BackgroundContainerNoImage, LargeButtonContainer} from "../../helpers/layout";
-import {Background} from "../../views/design/background/Background";
-import { BaseContainer } from '../../helpers/layout';
 import { api, handleError } from '../../helpers/api';
-import { Spinner } from '../../views/design/Spinner';
-import { Button } from '../../views/design/Button';
-import {withRouter} from 'react-router-dom';
-import FriendList from "../../components/application/FriendList"
-import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
+import {useHistory, withRouter} from 'react-router-dom';
 import './css/menu.css';
-import {InvitationInjector} from "./assets/InvitationInjector";
-
-const Container = styled('div')({
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  justifyContent: 'flex-start',
-  paddingTop: '2%',
-  width: props => props.width || '100%',
-  height: props => props.height || '100%',
-  borderTop: props => props.borderTop || null,
-  borderBottom: props => props.borderBottom || null
-});
-
-const FormContainer = styled.div`
-  margin-top: 2em;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-height: 300px;
-  justify-content: center;
-`;
-
-const Form = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  width: 100%;
-  height: 375px;
-  font-size: 16px;
-  font-weight: 300;
-  transition: opacity 0.5s ease, transform 0.5s ease;
-`;
-
-const InputField = styled.input`
-  &::placeholder {
-    color: rgba(154, 152, 153, 1.0);
-  }
-  height: 35px;
-  padding-left: 15px;
-  margin-left: -4px;
-  border: none;
-  border-radius: 10px;
-  margin-bottom: 20px;
-  background: rgba(255, 255, 255, 0.8);
-  color: black;
-`;
-
-const ButtonContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  margin-top: 20px;
-`;
-
-const FriendsContainer = styled('div')({
-  float: 'right',
-  marginRight: '5%',
-  padding: '5%',
-  paddingTop: '0'
-});
-
-const GametableButtonContainer = styled('div')({
-  display: 'flex',
-  flexDirection: 'column',
-  margin: '1%',
-  maxHeight: '200px',
-  width: '30%',
-  minWidth: '240px'
-});
+import {InvitationInjector} from "./menuAssets/InvitationInjector";
+import {MenuGrid, MenuHeader} from "../../views/design/ElegantAssets";
+import {RuleFramer, RuleItem} from "./menuAssets/JassEncyclopaedia";
+import {UserList} from "./menuAssets/UserList";
 
 
-class Menu extends React.Component {
-  constructor(props) {
-    super(props);
-    this.stompClient = props.stompClient;
-    this.state = {
-      user: null,
-      users: []
+
+const Menu = () => {
+  const [user] = useState(JSON.parse(sessionStorage.getItem('user')));
+  const history = useHistory();
+
+  /* add beforeunload event listener.
+  What I actually wanted to achieve was for a user to get logged
+  out once he closes the tab or the browser and stay logged in
+  if he only refreshes or navigates. However this behaviour is
+  not that easily achievable even though the W3C recommends
+  the High Resolution Time Level 2 API
+  (see https://www.w3.org/TR/hr-time-2/#sec-performance) to track
+  navigation types. But even then, if we would completely want to
+  rely on that API, we could not track if a client e.g. powers off
+  its device by force and hence could not handle him being logged
+  out correctly.
+  Thus we need to establish another mechanic to log out a client
+  properly in the backend. So I came up with another idea which
+  we might want to consider as an issue for this project:
+  Utilize cookies and stomp. Once a user logs in and gets redirected
+  to the menu, he receives a cookie from the backend. The frontend
+  must validate this cookie on a new page render and since the
+  cookie may expire, the user shall be logged out in case of
+  expiration. However, in order to advertise truthful online-status
+  information for a specific user, we might utilize the TCP connection
+  established by stomp such that in case the client's TCP connection
+  with the backend gets teared down, his status is then set to
+  offline in the backend. Once that client re-establishes his TCP
+  connection, his cookie gets validated once again and if the cookie
+  hasn't expired by then and only then does the backend set his
+  status to online again, otherwise he gets logged out.
+  -- I will leave this here as a note for myself and my project group.
+   */
+  useEffect(() => {
+
+    // alerts user before page unloads (tab/browser close or refresh) to cancel unload if desired
+    const onBeforeUnload = event => {
+      event.preventDefault();
+      return event.returnValue = '';
     };
-  }
 
+    // event listener...
+    window.addEventListener('beforeunload', onBeforeUnload);
 
-  async logout() {
+    // ...aaaand clean it up
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, [])
+
+  const logout = async () => {
     /** uncomment the following, when the backend is set up accordingly **/
-    /*try {
+    try {
       // request a user status update of myself ONLINE -> OFFLINE
-      const myToken = localStorage.removeItem('token');
-      const requestBody = JSON.stringify(myToken);
-      const response = await api.put('/logout', requestBody);
+      const myToken = user.token;
+      await api.put(`/users/logout/${myToken}`);
 
-      // add http.status handlers below...
+      // add http.status handlers here...
 
-
-      // remove token from localStorage and push login page
+      // remove token from localStorage and sessionStorage and push login page
       localStorage.removeItem('token');
-      this.props.history.push('login');
+      sessionStorage.removeItem('token');
+      history.push('login');
 
     } catch (error) {
       alert(`Something went wrong while trying to logout:\n${handleError(error)}`);
-    }*/
-  }
-
-  async componentDidMount() {
-    this.setState({user: JSON.parse(sessionStorage.getItem('user'))}, async function () {
-      const response = await api.get('/availableusers/' + this.state.user.id);
-      this.setState({
-        users: response.data
-      }, console.log(this.state));
-    });
-  }
-
-  filterMainSearch() {
-    var input = document.getElementById("mainSearch");
-    var filter = input.value.toUpperCase();
-    var div = document.getElementsByClassName("list-container")[0];
-    var a = div.getElementsByTagName("li");
-    for (var i = 0; i < a.length; i++) {
-      var txtValue = a[i].textContent || a[i].innerText;
-      if (txtValue.toUpperCase().indexOf(filter) > -1) {
-        a[i].style.display = "";
-      } else {
-        a[i].style.display = "none";
-      }
     }
   }
 
-  async sendFriendRequest(request_to) {
-    const response = await api.post('/friend_requests/' + this.state.user.id, {"id": request_to});
-  }
 
-  render() {
-    return (
-        <BackgroundContainer style={{flexDirection: 'row'}}>
-          <InvitationInjector userId={this.state.user?.id}/>
-          <Container width={'35%'}>
-            <GametableButtonContainer>
-              <LargeButtonContainer>
-                <Button onClick={() => this.props.history.push('/create')}>
-                  Create Game Table
-                </Button>
-              </LargeButtonContainer>
-              <LargeButtonContainer>
-                <Button
-                    onClick={() =>
-                        this.props.history.push({
-                              pathname: '/join',
-                              state: {user: this.state.user}
-                            }
-                        )}
-                >
-                  Join Game Table
-                </Button>
-              </LargeButtonContainer>
-            </GametableButtonContainer>
-          </Container>
-          <Container width={'25%'}>
-            <Form>
-              <InputField
-                  placeholder={'Search users...'}
-                  id="mainSearch"
-                  onKeyUp={this.filterMainSearch}
-              />
-              <div className="list-container">
-                <h2 style={{borderBottom: "1px solid black"}}>All users</h2>
-                <ul>
-                  {this.state.users.map((user, index) => {
-                    return  <li key={index}>
-                      <ContextMenuTrigger id={index.toString()}>
-                        <a title="user">
-                          {user.status == 'ONLINE' && <div className='circle-green float-child-1'></div>}
-                          {user.status == 'OFFLINE' && <div className='circle-red float-child-1'></div>}
-                          <div>{user.username}</div>
-                        </a>
-                      </ContextMenuTrigger>
-                      <ContextMenu id={index.toString()}>
-                        <MenuItem onClick={()=>this.sendFriendRequest(user.id)}>
-                          <span>Send friend request</span>
-                        </MenuItem>
-                        <MenuItem>
-                          <span>Invite to the game</span>
-                        </MenuItem>
-                      </ContextMenu>
-                    </li>
-                  })}
-                </ul>
-              </div>
-            </Form>
-          </Container>
-          <Container width={'40%'}>
-            <FriendList></FriendList>
-          </Container>
-        </BackgroundContainer>
-    );
-  }
+  return (
+      <MenuGrid>
+        <InvitationInjector userId={user?.id}/>
+        <MenuHeader
+            user={user}
+            onClickProfile={() => alert('Feature not yet implemented')}
+            onClickCreate={() => history.push('/create')}
+            onClickJoin={() => history.push({pathname: '/join', state: {user: user}})}
+            onClickLogout={() => logout()}
+        />
+        <RuleFramer>
+          <RuleItem heading={'Introduction to Jass'}>
+            Cum capio peregrinationes, omnes lapsuses quaestio pius, grandis extumes.
+            Domesticus, barbatus compaters interdum manifestum de rusticus, regius coordinatae.
+            cum homo mori, omnes ignigenaes attrahendam fidelis, flavum lactaes.
+            salvus, fatalis elogiums unus demitto de audax, fidelis torus.
+            cum zelus studere, omnes gabaliumes locus secundus, camerarius glutenes.
+            cum cannabis favere, omnes dominaes tractare varius, fatalis accolaes.
+            alter, placidus imbers velox talem de regius, noster armarium.
+            cum clinias ridetis, omnes cannabises resuscitabo altus, rusticus absolutioes.
+          </RuleItem>
+          <RuleItem heading={'The different Jass in-game modes'}>
+            Cum solitudo mori, omnes devirginatoes locus raptus, noster lactaes.
+            Domesticus, rusticus cedriums superbe manifestum de castus, fatalis clabulare.
+            cum luna credere, omnes navises visum secundus, albus fugaes.
+            emeritis, gratis ollas callide demitto de bi-color, dexter hibrida.
+            cum lactea mori, omnes ionicis tormentoes magicae bi-color, placidus lunaes.
+            cum habena trabem, omnes lumenes experientia magnum, pius fugaes.
+            cum visus congregabo, omnes paluses convertam fidelis, emeritis cedriumes.
+            salvus, camerarius elevatuss una consumere de barbatus, magnum mensa.
+          </RuleItem>
+          <RuleItem heading={'Specific rules'}>
+            Cum cobaltum resistere, omnes scutumes imitari dexter, fatalis assimilatioes.
+            Alter, talis tabess satis gratia de fatalis, lotus lamia.
+            cum humani generis resistere, omnes contencioes aperto mirabilis, castus bullaes.
+            bassus, brevis luras rare imperium de emeritis, fortis orexis.
+            fortis, bi-color byssuss rare promissio de bassus, nobilis nixus.
+            azureus, fidelis lixas cito dignus de fatalis, grandis historia.
+            teres, castus repressors tandem gratia de clemens, bassus equiso.
+            varius, audax speciess diligenter manifestum de placidus, superbus competition.
+          </RuleItem>
+          <RuleItem heading={'How does a single round with multiple tricks work'}>
+            Cum abactus ridetis, omnes bromiumes attrahendam gratis, emeritis zirbuses.
+            Cum agripeta prarere, omnes eraes captis rusticus, neuter devatioes.
+            fortis, flavum absolutios virtualiter tractare de primus, raptus finis.
+            regius, barbatus impositios vix imperium de fortis, castus uria.
+            cum contencio crescere, omnes agripetaes demitto neuter, fidelis omniaes.
+            regius, castus elogiums velox acquirere de salvus, brevis olla.
+            cum ignigena favere, omnes fermiumes locus altus, placidus vigiles.
+            regius, dexter deuss acceleratrix gratia de varius, camerarius lumen.
+          </RuleItem>
+          <RuleItem heading={'When is the game finished'}>
+            Varius, mirabilis toruss aliquando imitari de magnum, peritus spatii.
+            Nobilis, pius victrixs absolute quaestio de fatalis, fortis diatria.
+            cum contencio congregabo, omnes victrixes fallere albus, dexter verpaes.
+            cum solitudo studere, omnes onuses amor varius, bassus consiliumes.
+            cum pars accelerare, omnes scutumes imperium bassus, rusticus heureteses.
+            gratis, raptus fluctuis aliquando promissio de rusticus, magnum danista.
+            cum ventus peregrinatione, omnes demissioes anhelare talis, audax aususes.
+            cum usus manducare, omnes imberes amor grandis, neuter elevatuses.
+          </RuleItem>
+          <RuleItem heading={'Tricks, tips and advices'}>
+            Cum clinias tolerare, omnes lubaes convertam barbatus, grandis particulaes.
+            Teres, ferox nomens grauiter transferre de barbatus, camerarius cedrium.
+            fatalis, regius acipensers rare imperium de barbatus, alter valebat.
+            albus, flavum cobaltums vix experientia de fidelis, velox genetrix.
+            albus, regius omnias satis reperire de talis, grandis aonides.
+            cum bromium credere, omnes lumenes visum regius, azureus menses.
+            magnum, germanus eras nunquam imitari de brevis, salvus tumultumque.
+            flavum, mirabilis mineraliss velox locus de audax, dexter ausus.
+          </RuleItem>
+        </RuleFramer>
+        <UserList/>
+      </MenuGrid>
+  );
 }
 
-export default withRouter(Menu);
+export default Menu;

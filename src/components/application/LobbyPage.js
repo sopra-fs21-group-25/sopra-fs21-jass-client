@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {useHistory, useLocation} from "react-router-dom";
 import {BackgroundContainer} from "../../helpers/layout";
 import {api} from "../../helpers/api";
-import LobbyJassTable from "./assets/LobbyJassTable";
+import LobbyJassTable from "./lobbyAssets/LobbyJassTable";
 import {useStompClient, useSubscription} from 'react-stomp-hooks';
 import {
   BackButton,
@@ -13,9 +13,9 @@ import {
   PlayerHeader,
   StartButton,
   SearchBar, PlayerListWrapper
-} from "./assets/LobbyAssets";
-import LobbyPlayerList from "./assets/LobbyPlayerList";
-import LobbySearchbar from "./assets/LobbySearchbar";
+} from "./lobbyAssets/LobbyAssets";
+import LobbyPlayerList from "./lobbyAssets/LobbyPlayerList";
+import LobbySearchbar from "./lobbyAssets/LobbySearchbar";
 
 
 

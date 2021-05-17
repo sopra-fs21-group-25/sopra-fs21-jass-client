@@ -3,8 +3,8 @@ import React, {useState, useEffect} from "react";
 import {BackgroundContainer} from "../../helpers/layout";
 import {api} from "../../helpers/api";
 import {Col, Nav, Tab} from "react-bootstrap";
-import LobbyList from "./assets/LobbyList";
-import LobbyListItem from "./assets/LobbyListItem";
+import LobbyList from "./lobbyAssets/LobbyList";
+import LobbyListItem from "./lobbyAssets/LobbyListItem";
 import './css/joinPage.css';
 import {Spinner} from "../../views/design/Spinner";
 

@@ -93,12 +93,17 @@ class Login extends React.Component {
    * In this case the initial state is defined in the constructor. The state is a JS object containing two fields: name and username
    * These fields are then handled in the onChange() methods in the resp. InputFields
    */
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     this.state = {
       username: null,
       password: null
     };
+    this.login = this.login.bind(this);
+    this.register = this.register.bind(this);
+    this.guestLogin = this.guestLogin.bind(this);
+
+    this.onLogin = this.onLogin.bind(this);
   }
   /**
    * HTTP POST request is sent to the backend.
@@ -173,6 +178,17 @@ class Login extends React.Component {
     this.setState({ [key]: value });
   }
 
+
+  onLogin = event => {
+    if(event.code === 'Enter' || event.code === 'NumpadEnter') {
+      console.log('Enter key pressed')
+      if(this.state.username && this.state.password) {
+        event.preventDefault();
+        this.login();
+      }
+    }
+  }
+
   /**
    * componentDidMount() is invoked immediately after a component is mounted (inserted into the tree).
    * Initialization that requires DOM nodes should go here.
@@ -180,7 +196,13 @@ class Login extends React.Component {
    * You may call setState() immediately in componentDidMount().
    * It will trigger an extra rendering, but it will happen before the browser updates the screen. 
    */
-  componentDidMount() {}
+  componentDidMount() {
+    document.addEventListener('keydown', this.onLogin);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener('keydown', this.onLogin);
+  }
 
   render() {
     return (
