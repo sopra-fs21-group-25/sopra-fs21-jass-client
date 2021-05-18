@@ -58,7 +58,12 @@ const LobbyListItem = props => {
     const userIdRequest = JSON.stringify({userId: myId, remove: false, add: true});
     const response = await api.put(`/lobbies/${lobby.id}`, userIdRequest);
     lobby = response.data;
-    console.log({data: response.data});
+
+    props.client.publish({
+      destination: `/app/lobbies/${lobby.id}/fetch`,
+      body: ''
+    });
+
     history.push({
       pathname: `/lobby/${lobby.id}`,
       state: lobby
@@ -69,7 +74,7 @@ const LobbyListItem = props => {
     <ItemContainer>
       <UserlistContainer>
         Users in Lobby:
-        {lobby?.usersInLobby.map(user => <div key={uniqueKey++}>{user}</div>)}
+        {lobby?.usersInLobby.map(user => <div key={uniqueKey++}>{user.username}</div>)}
       </UserlistContainer>
       <RulesContainer>
         <div style={{width: '50%'}}>

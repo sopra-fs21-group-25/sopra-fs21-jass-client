@@ -1,6 +1,5 @@
 import React, {useEffect, useState} from 'react';
 import styled from "styled-components";
-import {Spinner} from "../../../views/design/Spinner";
 
 
 const ItemContainer = styled('div')({
@@ -55,7 +54,7 @@ const ListItem = props => {
 
   const removeUser = () => {
     props.client.publish({
-      destination: `/app/lobbies/${props.lobbyId}/kicked/${props.user}`,
+      destination: `/app/lobbies/${props.lobbyId}/kicked/${props.user.id}`,
       data: null
     })
   };
@@ -64,20 +63,19 @@ const ListItem = props => {
       <li>
         <ItemContainer>
           <LeftItemComponentContainer>
-            {props.user}
+            {props.user.username}
           </LeftItemComponentContainer>
           <RightItemComponentContainer>
             {props.removable ? (
                 <RemoveButton onClick={() => removeUser()}>X</RemoveButton>
-            ) : null}
+            ) : <></>}
           </RightItemComponentContainer>
         </ItemContainer>
       </li>
   );
 };
 
-const LobbyPlayerList = props => {
-  let uniqueKey = 0;    // key generator for children in the render method
+export const LobbyPlayerList = props => {
   const stompClient = props.client;
   const lobbyId = props.lobbyId;
 
@@ -86,23 +84,20 @@ const LobbyPlayerList = props => {
       <div>
         <ul>
           {props.users ? (
-              props.users.map(user =>
+              props.users.map((user, index) =>
                   <ListItem
-                    key={uniqueKey++}
+                    key={index}
                     user={user}
-                    removable={props.permitted && props.creator !== user}
+                    removable={props.permitted && props.creator !== user.username}
                     client={stompClient}
                     lobbyId={lobbyId}
                   />)
             ) : (
-                <Spinner/>
+                <></>
           )}
         </ul>
       </div>
   );
 }
-
-export default LobbyPlayerList;
-
 
 

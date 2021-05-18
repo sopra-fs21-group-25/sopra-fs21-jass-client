@@ -4,10 +4,7 @@ import AppRouter from "./components/shared/routers/AppRouter";
 import {StompSessionProvider} from "react-stomp-hooks";
 import {getWebsocketDomain} from "./helpers/getDomain";
 
-/**
- * Happy coding!
- * React Template by Lucas Pelloni
- */
+
 class App extends Component {
   render() {
     return (

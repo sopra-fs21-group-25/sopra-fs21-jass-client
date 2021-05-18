@@ -5,51 +5,7 @@ import styled from "styled-components";
 
 
 
-const GridContainer = styled('div')({
-  display: 'grid',
-  gridTemplateColumns: '1fr 8fr 1fr',
-  gridTemplateRows: '1fr 8fr 1fr',
-  gridGap: '5px',
-  width: '100%',
-  height: 'auto',
-  aspectRatio: '1'
-});
-
-const Jasstable = styled('div')({
-  gridColumn: 2,
-  gridRow: 2,
-  background: '#1F7A20',
-  border: '1px solid black',
-  borderRadius: '5px'
-});
-
-const ButtonContainer = styled.div`
-  grid-column: ${props => props.position.col || 1};
-  grid-row: ${props => props.position.row || 1};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  -webkit-transform: ${props => props.id === 'left' ? 'rotate(-90deg)' : (props.id === 'right' ? 'rotate(90deg)' : 'rotate(0deg)')};
-  -ms-transform: ${props => props.id === 'left' ? 'rotate(-90deg)' : (props.id === 'right' ? 'rotate(90deg)' : 'rotate(0deg)')};
-  transform: ${props => props.id === 'left' ? 'rotate(-90deg)' : (props.id === 'right' ? 'rotate(90deg)' : 'rotate(0deg)')};
-`;
-
-const ClickablePlayerContainer = styled('div')({
-
-});
-
-
-function parseUsers(top, bot, left, right) {
-  return JSON.stringify({
-    playerTop: top,
-    playerBottom: bot,
-    playerLeft: left,
-    playerRight: right
-  });
-}
-
-
-const LobbyJassTable = props => {
+const LobbyJassTableDeprecated = props => {
   const [playerTop, setPlayerTop] = useState('');
   const [playerBottom, setPlayerBottom] = useState('');
   const [playerLeft, setPlayerLeft] = useState('');
@@ -202,4 +158,46 @@ const LobbyJassTable = props => {
   );
 }
 
-export default LobbyJassTable;
+export default LobbyJassTableDeprecated;
+
+
+
+
+function parseUsers(top, bot, left, right) {
+  return JSON.stringify({
+    playerTop: top,
+    playerBottom: bot,
+    playerLeft: left,
+    playerRight: right
+  });
+}
+
+const GridContainer = styled('div')({
+  display: 'grid',
+  gridTemplateColumns: '1fr 8fr 1fr',
+  gridTemplateRows: '1fr 8fr 1fr',
+  gridGap: '5px',
+  width: '100%',
+  height: 'auto',
+  aspectRatio: '1'
+});
+
+const Jasstable = styled('div')({
+  gridColumn: 2,
+  gridRow: 2,
+  background: '#1F7A20',
+  border: '1px solid black',
+  borderRadius: '5px'
+});
+
+const ButtonContainer = styled.div`
+  grid-column: ${props => props.position.col || 1};
+  grid-row: ${props => props.position.row || 1};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-transform: ${props => props.id === 'left' ? 'rotate(-90deg)' : (props.id === 'right' ? 'rotate(90deg)' : 'rotate(0deg)')};
+  -ms-transform: ${props => props.id === 'left' ? 'rotate(-90deg)' : (props.id === 'right' ? 'rotate(90deg)' : 'rotate(0deg)')};
+  transform: ${props => props.id === 'left' ? 'rotate(-90deg)' : (props.id === 'right' ? 'rotate(90deg)' : 'rotate(0deg)')};
+`;
+

@@ -1,6 +1,6 @@
 import React, {useEffect} from "react";
 import {useState} from "react";
-import {useSubscription} from "react-stomp-hooks";
+import {useStompClient, useSubscription} from "react-stomp-hooks";
 import styled from "styled-components";
 import {useHistory} from "react-router-dom";
 import {api} from "../../../helpers/api";
@@ -10,6 +10,7 @@ import {Button} from "../../../views/design/Button";
 export const InvitationInjector = props => {
   const [showPopup, setShowPopup] = useState(false);
   const [lobbyToJoinId, setLobbyToJoinId] = useState('');
+  const stompClient = useStompClient();
 
   const togglePopup = () => {
     setShowPopup(!showPopup);
@@ -35,6 +36,7 @@ export const InvitationInjector = props => {
             <InvitationPopup
                 userId={props.userId}
                 lobbyId={lobbyToJoinId}
+                client={stompClient}
                 closePopup={() => {
                   togglePopup();
                   resetLobbyToJoinId();
@@ -58,7 +60,12 @@ const InvitationPopup = props => {
       const userIdRequest = JSON.stringify({userId: myId, remove: false, add: true})
       const response = await api.put(`/lobbies/${lobbyId}`, userIdRequest);
       const lobby = response.data;
-      console.log(lobby.id);
+
+      props.client.publish({
+        destination: `/app/lobbies/${lobby.id}/fetch`,
+        body: ''
+      });
+
       history.push({
         pathname: `/lobby/${lobbyId}`,
         state: lobby

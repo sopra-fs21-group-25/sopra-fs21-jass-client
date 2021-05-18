@@ -3,10 +3,10 @@ import {BackgroundContainer, Container, InnerContainer} from "../../helpers/layo
 import styled from "styled-components";
 import {withRouter} from "react-router-dom";
 import {Tab, Tabs} from 'react-bootstrap';
-import SchieberCreator from "./creators/SchieberCreator";
-import CoiffeurCreator from "./creators/CoiffeurCreator";
-import BieterCreator from "./creators/BieterCreator";
-import SidiCreator from "./creators/SidiCreator";
+import SchieberCreator from "./creationPageAssets/SchieberCreator";
+import CoiffeurCreator from "./creationPageAssets/CoiffeurCreator";
+import BieterCreator from "./creationPageAssets/BieterCreator";
+import SidiCreator from "./creationPageAssets/SidiCreator";
 
 
 

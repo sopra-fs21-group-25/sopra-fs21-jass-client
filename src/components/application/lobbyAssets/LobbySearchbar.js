@@ -86,7 +86,7 @@ const InviteButton = styled.button`
   transition: all 0.3s ease;
 `;
 
-const ListItem = props => {
+const LobbySearchListItem = props => {
   const stompClient = props.client;
 
 
@@ -111,7 +111,7 @@ const ListItem = props => {
   );
 }
 
-const LobbySearchbar = props => {
+export const LobbySearchbar = props => {
   const [users, setUsers] = useState([]);
   const [textInput, setTextInput] = useState('');
   const stompClient = props.client;
@@ -149,7 +149,7 @@ const LobbySearchbar = props => {
         />
         <SearchListContainer>
           {users.map(user => (
-              <ListItem
+              <LobbySearchListItem
                   key={user.id}
                   user={user}
                   lobbyId={props.lobbyId}
@@ -162,5 +162,3 @@ const LobbySearchbar = props => {
   );
 
 }
-
-export default LobbySearchbar;

@@ -3,10 +3,11 @@ import React, {useState, useEffect} from "react";
 import {BackgroundContainer} from "../../helpers/layout";
 import {api} from "../../helpers/api";
 import {Col, Nav, Tab} from "react-bootstrap";
-import LobbyList from "./lobbyAssets/LobbyList";
-import LobbyListItem from "./lobbyAssets/LobbyListItem";
+import LobbyList from "./joinPageAssets/LobbyList";
+import LobbyListItem from "./joinPageAssets/LobbyListItem";
 import './css/joinPage.css';
 import {Spinner} from "../../views/design/Spinner";
+import {useStompClient} from "react-stomp-hooks";
 
 const OuterWrapper = styled('div')({
   display: 'block',
@@ -39,6 +40,7 @@ const listBoxStyle = {
 const JoinPage = () => {
   const [user, setUser] = useState({userType: 'GuestUser'});
   const [lobbies, setLobbies] = useState([]);
+  const stompClient = useStompClient();
 
   const myId = JSON.parse(sessionStorage.getItem('user')).id;
 
@@ -125,7 +127,7 @@ const JoinPage = () => {
                                   {!lobbies ? <Spinner/> :
                                     lobbies.filter(lobby => lobby.lobbyType === 'friends').map(lobby => {
                                       console.log({lobby});
-                                      return <LobbyListItem key={lobby.id} lobby={lobby}/>;
+                                      return <LobbyListItem key={lobby.id} lobby={lobby} client={stompClient}/>;
                                     })
                                   }
                                 </LobbyList>
@@ -176,7 +178,7 @@ const JoinPage = () => {
                                   {!lobbies ? <Spinner/> :
                                       lobbies.map(lobby => {
                                         console.log({lobby});
-                                        return <LobbyListItem key={lobby.id} lobby={lobby}/>;
+                                        return <LobbyListItem key={lobby.id} lobby={lobby} client={stompClient}/>;
                                       })
                                   }
                                 </LobbyList>
