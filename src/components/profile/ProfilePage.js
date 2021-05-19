@@ -16,14 +16,16 @@ import User from "../shared/models/User";
 import axios from "axios";
 //import UploadFilesService from "./UploadFilesService";
 import acorn from "../../views/images/icons/acorn.png";
+import FileHandler from "./FileHandler"
 
 
 const ProfileContainer =  styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(3, 1fr);
+  grid-template-rows: repeat(4, 1fr);
   grid-template-areas:
     "empty-topLeft avatar empty-topRight"
+    "empty-topLeft avatarButton empty-topRight"
     "empty-middleLeft namePassword empty-middleRight"
     "backButton editButton empty-bottomRight";
   grid-gap: 20px;
@@ -40,7 +42,14 @@ const BackButtonWrapper = styled.div`
   justify-content: flex-start;
 `;
 
-const EditButtonWrapper = styled.div`
+const EditPictureButtonWrapper = styled.div`
+  grid-area: avatarButton;
+  height: 25%;
+  width: 50%;
+  margin: auto;
+`;
+
+const EditUsernameButtonWrapper = styled.div`
   grid-area: editButton;
   height: 25%;
   width: 50%;
@@ -50,13 +59,15 @@ const EditButtonWrapper = styled.div`
 const FormWrapper = styled.div`
   grid-area: namePassword;
   align-self: end;
-  justify-content: center
+  width: 50%;
+  margin: auto;
 `;
 
 const AvatarWrapper = styled.div`
   grid-area: avatar;
   align-self: end;
   justify-content: center;
+  align-content: center;
   height: 25%;
   width: 50%;
   margin: auto;
@@ -81,7 +92,7 @@ const InputField = styled.input`
     padding: 6px;
   font-weight: 700;
   font-size: 15px;
-  width: 100%;
+  width: 50%;
   height: ${props => props.height || null};
   border-radius: 5px;
 `;
@@ -116,6 +127,9 @@ const Label = styled.label`
   text-transform: uppercase;
 `;
 
+
+
+
 class ProfilePage extends React.Component {
     constructor(props) {
         super(props);
@@ -123,39 +137,27 @@ class ProfilePage extends React.Component {
         this.state = {
             username: null,
             userType: UserType.REGISTERED,
-            id: null,
             user: null,
             editMode: true,
+            editPictureMode: true,
             selectedFile: undefined,
-            currentFile: undefined,
-            progress: 0,
-            message: "",
-            fileInfos: [],
-
-
+            currentFile: null,
         };
     }
 
     async componentDidMount() {
         this.setState({user: JSON.parse(sessionStorage.getItem('user'))}, async function () {
             const response = await api.get('/users/' + this.state.user.id);
+            const responseImage = await api.get('/files/' + this.state.user.id);
+
+            if (responseImage.status === 200) {
+                this.convertToImage(responseImage.data);
+            }
+
             this.setState({
                 username: response.data.username,
-            }, console.log(this.state));
-            // const responseimage = await api.get('/files/' + this.state.user.id);
-            // if (responseimage.status === 500) {
-            //     this.setState({
-            //         currentFile: acorn,
-            //     })
-            //     // <img src ={acorn} width="100" />
-            // }
+            });
         });
-
-        // this.getFile().then((response) => {
-        //     this.setState({
-        //         currentFile: response.data,
-        //     });
-        // });
     }
 
     handleInputChange(key, value) {
@@ -168,127 +170,107 @@ class ProfilePage extends React.Component {
                 username: this.state.username,
                 password: this.state.password
             });
+
             const response = await api.put('/users/'+  this.state.user.id, requestBody);
+
             if (response.status === 200) {
                 localStorage.setItem('username', response.data.username);
                 sessionStorage.setItem('username', response.data.username);
-                // //localStorage.setItem('user', JSON.stringify(user));
-                //
-                // //sessionStorage.setItem('user', JSON.stringify(user));
-                //
-                // // Login successfully worked --> navigate to the route /game in the UsersOverviewRouter
-                // //this.props.history.push(`/menu`);
             } else if (response.status === 409) {
                 alert(response.data.text)
             }
         } catch (error) {
             alert(`Changing the info was unsuccessful: \n${handleError(error)}`);
         }
+
         this.setState({editMode: !this.state.editMode})
     }
 
-    upload(file, onUploadProgress) {
+    async upload(file) {
         let formData = new FormData();
 
         formData.append("file", file);
 
-        const response = api.post("/files"+ this.state.user.id, formData, {
+        const response = await api.post("/files/"+ this.state.user.id, formData, {
             headers: {
                 "Content-Type": "multipart/form-data",
             },
-            onUploadProgress,
         });
+
+        if (response.status === 200) {
+            this.convertToImage(response.data);
+        }
     }
 
-    getFile() {
-        //return acorn;
-        return api.get("/files" + this.state.user.id);
+    convertToImage(data) {
+        const byteCharacters = atob(data);
+        const byteNumbers = new Array(byteCharacters.length);
+
+        for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+
+        const byteArray = new Uint8Array(byteNumbers);
+
+        let image = new Blob([byteArray], { type: 'image/jpeg' });
+        let imageUrl = URL.createObjectURL(image);
+
+        this.setState({currentFile: imageUrl});
     }
+
 
     fileSelectedHandler = event => {
         this.setState({
             selectedFile: event.target.files[0]
         });
-
     }
+
     fileUploadHandler = () =>{
-        let currentFile = this.state.selectedFile[0];
+        let currentFile = this.state.selectedFile;
 
         this.setState({
             progress: 0,
             currentFile: currentFile,
         });
 
-        this.upload(currentFile, (event) => {
-            this.setState({
-                progress: Math.round((100 * event.loaded) / event.total),
-            });
-        })
-            .then((response) => {
-                this.setState({
-                    message: response.data.message,
-                });
-                return this.getFiles();
-            })
-            .then((files) => {
-                this.setState({
-                    fileInfos: files.data,
-                });
-            })
-            .catch(() => {
-                this.setState({
-                    progress: 0,
-                    message: "Could not upload the file!",
-                    currentFile: undefined,
-                });
-            });
-
-        this.setState({
-            selectedFile: undefined,
-        });
-
+        this.upload(currentFile);
+        this.setState({editPictureMode: true});
     }
-
-
-
 
 render() {
         const {
-            selectedFile,
-            currentFile,
-            progress,
-            message,
-            fileInfos,
+            selectedFile
         } = this.state;
+
         return (
             <BackgroundContainer style={{flexDirection: 'row'}}>
                 <ProfileContainer>
                     <AvatarWrapper>
                         <Label>Current Profile Picture</Label>
-                        {this.state.editMode ?
+                        {this.state.editPictureMode ?
                             <div>
-                                {currentFile && (
-                                    <div className="progress">
-                                        <div
-                                            className="progress-bar progress-bar-info progress-bar-striped"
-                                            role="progressbar"
-                                            aria-valuenow={progress}
-                                            aria-valuemin="0"
-                                            aria-valuemax="100"
-                                            style={{ width: progress + "%" }}
-                                        >
-                                            {progress}%
-                                        </div>
-                                    </div>
-                                )}
-                            </div>:
-                        <div>
-                            <input type ="file" onChange={this.fileSelectedHandler} />
-
-                            <Button disabled={!selectedFile }onClick={this.fileUploadHandler}>Upload Profile Picture</Button>}
-                        </div>
+                                <img style={{width: 100, height: 100, display: "block", marginLeft: "auto", marginRight: "auto"}} src={this.state.currentFile} />
+                            </div>
+                            :
+                            <div>
+                                <input type ="file" onChange={this.fileSelectedHandler} />
+                            </div>
                         }
                     </AvatarWrapper>
+                    <EditPictureButtonWrapper>
+                        {this.state.editPictureMode ?
+                            <Button
+                                onClick={() => this.setState({editPictureMode: !this.state.editPictureMode})}>
+                                Edit
+                            </Button>
+                            :
+                            <Button
+                                disabled={!selectedFile }
+                                onClick={this.fileUploadHandler}>
+                                Upload Profile Picture
+                            </Button>
+                        }
+                    </EditPictureButtonWrapper>
                     <FormWrapper>
                         {this.state.editMode ?
                             <div>
@@ -297,7 +279,6 @@ render() {
                             </div>
                             :
                             <div>
-
                                 <Label>Update Username</Label>
                                 <InputField
                                     required
@@ -311,7 +292,7 @@ render() {
                         }
                     </FormWrapper>
 
-                    <EditButtonWrapper>
+                    <EditUsernameButtonWrapper>
                         {this.state.editMode ?
                             <Button
                                 onClick={() => this.setState({editMode: !this.state.editMode})}>
@@ -323,7 +304,7 @@ render() {
                                 Submit New Username
                             </Button>
                         }
-                    </EditButtonWrapper>
+                    </EditUsernameButtonWrapper>
                     <BackButtonWrapper>
                         <Button
                             onClick={() => this.props.history.push('/menu')}>
