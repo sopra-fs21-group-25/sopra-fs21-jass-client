@@ -39,16 +39,29 @@ const Container = styled(BaseContainer)`
   text-align: center;
 `;
 
-const CurrentModeContainer = styled(BaseContainer)`
+const ScoreContainer = styled(BaseContainer)`
   position: absolute;
-  width: 100px;
-  height: 200px;
+  width: 200px;
+  height: 400px;
   right: 50px,
   top: 20px,
   background-color: white;
   border-radius: 50%;
   text-align: center;
 `;
+
+const CurrentModeContainer = styled(BaseContainer)`
+  position: absolute;
+  width: 100px;
+  height: 200px;
+  right: 50px,
+  top: 20px,
+  background-color: red;
+  border-radius: 50%;
+  text-align: center;
+`;
+
+
 
 const Users = styled.ul`
   list-style: none;
@@ -239,6 +252,11 @@ const Game = (props) => {
           ))}
         </List>
       </Dialog>
+      <ScoreContainer style={{position: "absolute", top: "3em", right: "3em"}}>
+        <Label style={{backgroundColor: "white", textAlign: "center"}}>
+            Score
+        </Label>
+      </ScoreContainer>
       <CurrentModeContainer style={{position: "absolute", top: "3em", left: "3em"}}>
         <Label style={{backgroundColor: "white", textAlign: "center"}}>
           Current Mode: 
