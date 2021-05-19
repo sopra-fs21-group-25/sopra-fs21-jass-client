@@ -1,20 +1,15 @@
 import React from "react";
 import { BrowserRouter, Redirect, Route, Switch } from "react-router-dom";
-import { GameGuard } from "../routeProtectors/GameGuard";
-import GameRouter from "./GameRouter";
-import { LoginGuard } from "../routeProtectors/LoginGuard";
 import Login from "../../login/Login";
 import { MenuGuard } from '../routeProtectors/MenuGuard';
-import Menu from '../../application/Menu';
 import CreationPage from "../../application/CreationPage";
-import LobbyPage from "../../application/LobbyPage";
 import Register from "../../register/Register";
 import JoinPage from "../../application/JoinPage";
-import GameTestPage from "../../application/GameTestPage";
-import Game from '../../game/Game';
 import GamePlus from "../../game/GamePlus";
 import {ProfilePageGuard} from "../routeProtectors/ProfilePageGuard";
 import ProfilePage from "../../profile/ProfilePage";
+import Menu from "../../application/Menu";
+import LobbyPage from "../../application/LobbyPage";
 
 /**
  * Main router of your application.
@@ -35,7 +30,7 @@ class AppRouter extends React.Component {
               path="/menu"
               render={() => (
                 <MenuGuard>
-                  <Menu />
+                  <Menu/>
                 </MenuGuard>
               )}
             />
@@ -85,13 +80,6 @@ class AppRouter extends React.Component {
                 render={() => (
                     <Register />
                 )}
-            />
-            <Route
-              path="/gametest"
-              exact
-              render={() => (
-                  <GameTestPage />
-              )}
             />
             <Route
                 path="/game/:id"

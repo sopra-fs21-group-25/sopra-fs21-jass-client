@@ -2,6 +2,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {BackgroundContainer} from "../../helpers/layout";
 import {api} from "../../helpers/api";
 import {useStompClient, useSubscription} from 'react-stomp-hooks';
+import {useHistory, useLocation} from "react-router-dom";
 import '../cards/index.css';
 import styled from 'styled-components';
 import { BaseContainer } from '../../helpers/layout';
@@ -10,6 +11,8 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
+import DialogActions from '@material-ui/core/DialogActions';
+import Button from '@material-ui/core/Button';
 import '../cards/index.css';
 
 import acorn from "../../views/images/icons/acorn.png";
@@ -33,6 +36,18 @@ const CurrentModeContainer = styled(BaseContainer)`
 
 `;
 
+const ScoreContainer = styled(BaseContainer)`
+  position: absolute;
+  width: 200px;
+  height: 400px;
+  right: 50px,
+  top: 20px,
+  background-color: white;
+  border-radius: 50%;
+  text-align: center;
+`;
+
+
 const Label = styled.label`
   color: black;
   margin-bottom: 10px;
@@ -52,13 +67,20 @@ const GamePlus = props => {
     idOfRoundStartingPlayer,
     cardsOfPlayer,
     currentIngameMode
-  }, setGameState] = useState({...props.initialGameState, currentIngameMode: {text: 'Not decided yet', value: questionmark}});
+  }, setGameState] = useState({...props.initialGameState, currentIngameMode: {text: 'Not decided yet', value: questionmark}, pointsTeam0_2: 0, pointsTeam1_3: 0});
 
 /*  const [currentIngameMode, setCurrentIngameMode] = useState({text: 'Not decided yet', value: questionmark});*/
   const [startOfRound, setStartOfRound] = useState(false);
 
+  const [showScoreDialog, setShowScoreDialog] = useState(false); 
+
+  const [gameEnded, setGameEnded] = useState(false);
+
   const [patchGameStateSwitch, setPatchGameStateSwitch] = useState(false);
 
+  const [endGameText, setEndGameText] = useState("");
+  
+  const history = useHistory();
   /* Game state
   ---------------------------------------------------------------------------------------------------------------------
      Helper methods                                                                                                  */
@@ -133,6 +155,18 @@ const GamePlus = props => {
     updateGameState(null, ingameMode);
   }
 
+  const handleScoreDialogClose = () => {
+    setShowScoreDialog(false);
+  }
+
+  const handleEndDialogClose = () => {
+    try {
+      api.put(`/games/${gameId}/close`);
+    }  
+    finally {
+      history.push('/menu');
+    }
+  }
   // triggers update of game state in backend and notifies all players to re-fetch and patch their game state
   const updateGameState = async (playedCard, ingameMode) => {
 
@@ -193,14 +227,26 @@ const GamePlus = props => {
       ...newState,
       currentIngameMode: newState.currentIngameMode
           ? ingameModes.filter(mode => mode.ingameMode === newState.currentIngameMode)[0]
-          : {text: 'Not decided yet', value: questionmark}
+          : {text: 'Not decided yet', value: questionmark}, 
+      pointsTeam0_2: newState.pointsTeam0_2, 
+      pointsTeam1_3: newState.pointsTeam1_3
     });
     // if the current trick to play is the 0-th trick and the trick has not
     // started yet, we can consider this the case when the round has to start
     if(newState['trickToPlay'] === 0 && !newState['hasTrickStarted']) {
+      if (newState.pointsTeam0_2 >= newState.pointsToWin){
+        setGameEnded(true);
+        setEndGameText(`${scoreText[myIndex % 2]} won the game!`); 
+      } else if  (newState.pointsTeam1_3 >= newState.pointsToWin){
+        setGameEnded(true);
+        setEndGameText(`${scoreText[myIndex % 2]} won the game!`); 
+      } else {
       setStartOfRound(true);
+      setShowScoreDialog(true);
+      }
     } else {
       setStartOfRound(false);
+      setShowScoreDialog(false);
     }
   }
 
@@ -218,7 +264,7 @@ const GamePlus = props => {
 
   const stompClient = useStompClient();
 
-
+  const scoreText = ["Your team", "Opponent team"];
 
   /*
 ---------------------------------------------------------------------------------------------------------------------
@@ -260,7 +306,39 @@ const GamePlus = props => {
 
   return (
       <BackgroundContainer>
-        <Dialog open={startOfRound && idOfRoundStartingPlayer === myId && cardsPlayed.every(card => card == null)}>
+        <Dialog open={gameEnded}>
+          <DialogTitle>{`${endGameText}`}</DialogTitle>
+          <List>
+            <ListItem>
+              <ListItemText primary={`${scoreText[myIndex % 2]}: ${pointsTeam0_2} points`}/>
+            </ListItem>
+            <ListItem>
+              <ListItemText primary={`${scoreText[1 - myIndex % 2]}: ${pointsTeam1_3} points`}/>
+            </ListItem>
+          </List>
+          <DialogActions>
+            <Button onClick={handleEndDialogClose} color="primary">
+              Back to main menu
+            </Button>
+        </DialogActions>
+        </Dialog>
+        <Dialog open={showScoreDialog && startOfRound}>
+          <DialogTitle>{"Team points"}</DialogTitle>
+          <List>
+            <ListItem>
+              <ListItemText primary={`${scoreText[myIndex % 2]}: ${pointsTeam0_2}`}/>
+            </ListItem>
+            <ListItem>
+              <ListItemText primary={`${scoreText[1 - myIndex % 2]}: ${pointsTeam1_3}`}/>
+            </ListItem>
+          </List>
+          <DialogActions>
+            <Button onClick={handleScoreDialogClose} color="primary">
+              Continue
+            </Button>
+        </DialogActions>
+        </Dialog>
+        <Dialog open={!showScoreDialog && startOfRound && idOfRoundStartingPlayer === myId && cardsPlayed.every(card => card == null)}>
           <DialogTitle>{"Please choose in-game mode"}</DialogTitle>
           <List>
             {ingameModes ? ingameModes.map((mode, index) => (
@@ -278,6 +356,13 @@ const GamePlus = props => {
             <input style={{textAlign: "center"}} disabled={true} type={"text"} value={currentIngameMode.text} />
           </Label>
         </CurrentModeContainer>
+        <ScoreContainer style={{position: "absolute", top: "3em", right: "3em"}} visible={!showScoreDialog && !startOfRound}>
+          <Label style={{backgroundColor: "white", textAlign: "center"}}>
+            <div>Team points</div>
+            <input style={{textAlign: "center"}} disabled={true} type={"text"} value={`${scoreText[myIndex % 2]}: ${pointsTeam0_2}`} />
+            <input style={{textAlign: "center"}} disabled={true} type={"text"} value={`${scoreText[1 - myIndex % 2]}: ${pointsTeam1_3}`} />
+          </Label>
+        </ScoreContainer>
         {(myIndex != null && cardsOfPlayer && cardsPlayed) ?
             <InitDistributionPlus
                 cardsInHands={cardsOfPlayer}

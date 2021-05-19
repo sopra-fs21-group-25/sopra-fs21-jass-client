@@ -91,31 +91,31 @@ class Register extends React.Component {
      * and its token is stored in the localStorage.
      */
     async registerUser() {
-        try {
-            const requestBody = JSON.stringify({
-                username: this.state.username,
-                password: this.state.password,
-                userType: this.state.userType
-            });
-            const response = await api.post('/users', requestBody);
-            if (response.status === 201) {
-                // Get the returned user and update a new object.
-                const user = new User(response.data);
+      try {
+          const requestBody = JSON.stringify({
+              username: this.state.username,
+              password: this.state.password,
+              userType: this.state.userType
+          });
+          const response = await api.post('/users', requestBody);
+          if (response.status === 201) {
+              // Get the returned user and update a new object.
+              const user = new User(response.data);
 
-                // Store the token into the local storage.
-                localStorage.setItem('token', user.token);
-                localStorage.setItem('user', JSON.stringify(user));
+              // Store the token into the local storage.
+              localStorage.setItem('token', user.token);
+              localStorage.setItem('user', JSON.stringify(user));
 
-                sessionStorage.setItem('user', JSON.stringify(user));
+              sessionStorage.setItem('user', JSON.stringify(user));
 
-                // Login successfully worked --> navigate to the route /game in the UsersOverviewRouter
-                this.props.history.push(`/menu`);
-            } else if (response.status === 409) {
-                alert(response.data.text)
-            }
-        } catch (error) {
-            alert(`Something went wrong during the login: \n${handleError(error)}`);
-        }
+              // Login successfully worked --> navigate to the route /game in the UsersOverviewRouter
+              this.props.history.push(`/menu`);
+          } else if (response.status === 409) {
+              alert(response.data.text)
+          }
+      } catch (error) {
+          alert(`Something went wrong during the login: \n${handleError(error)}`);
+      }
     }
 
     /**
