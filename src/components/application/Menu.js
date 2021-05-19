@@ -82,7 +82,7 @@ const Menu = () => {
         <InvitationInjector userId={user?.id}/>
         <MenuHeader
             user={user}
-            onClickProfile={() => alert('Feature not yet implemented')}
+            onClickProfile={() => history.push("/profile")}
             onClickCreate={() => history.push('/create')}
             onClickJoin={() => history.push({pathname: '/join', state: {user: user}})}
             onClickLogout={() => logout()}

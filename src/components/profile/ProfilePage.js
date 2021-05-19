@@ -2,21 +2,11 @@ import React from 'react';
 import styled from 'styled-components';
 import { UserType } from '../shared/models/UserType';
 import {BackgroundContainer, BackgroundContainerNoImage, LargeButtonContainer} from "../../helpers/layout";
-import {Background} from "../../views/design/background/Background";
-import { BaseContainer } from '../../helpers/layout';
 import { api, handleError } from '../../helpers/api';
-import { Spinner } from '../../views/design/Spinner';
 import { Button } from '../../views/design/Button';
 import {withRouter} from 'react-router-dom';
-import FriendList from "../application/FriendList"
 import '../application/css/menu.css';
-import {InvitationInjector} from "../application/assets/InvitationInjector";
-import {IconicInput} from "../../views/design/ElegantAssets";
-import User from "../shared/models/User";
-import axios from "axios";
-//import UploadFilesService from "./UploadFilesService";
-import acorn from "../../views/images/icons/acorn.png";
-import FileHandler from "./FileHandler"
+
 
 
 const ProfileContainer =  styled.div`
@@ -36,7 +26,7 @@ const ProfileContainer =  styled.div`
 const BackButtonWrapper = styled.div`
   grid-area: backButton;
   height: 25%;
-  width: 50%;
+  width: 100%;
   display: flex;
   align-self: flex-end;
   justify-content: flex-start;
@@ -52,13 +42,13 @@ const EditPictureButtonWrapper = styled.div`
 const EditUsernameButtonWrapper = styled.div`
   grid-area: editButton;
   height: 25%;
-  width: 50%;
+  width: 100%;
   margin: auto;
 `;
 
 const FormWrapper = styled.div`
   grid-area: namePassword;
-  align-self: end;
+  align-self: start;
   width: 50%;
   margin: auto;
 `;
@@ -92,7 +82,7 @@ const InputField = styled.input`
     padding: 6px;
   font-weight: 700;
   font-size: 15px;
-  width: 50%;
+  width: 100%;
   height: ${props => props.height || null};
   border-radius: 5px;
 `;
@@ -290,7 +280,7 @@ render() {
                                 />
                             </div>
                         }
-                    </FormWrapper>
+
 
                     <EditUsernameButtonWrapper>
                         {this.state.editMode ?
@@ -305,6 +295,7 @@ render() {
                             </Button>
                         }
                     </EditUsernameButtonWrapper>
+                    </FormWrapper>
                     <BackButtonWrapper>
                         <Button
                             onClick={() => this.props.history.push('/menu')}>
