@@ -6,7 +6,7 @@ import './css/menu.css';
 import {InvitationInjector} from "./menuAssets/InvitationInjector";
 import {MenuGrid, MenuHeader} from "../../views/design/ElegantAssets";
 import {RuleFramer, RuleItem} from "./menuAssets/JassEncyclopaedia";
-import {UserList} from "./menuAssets/UserList";
+import {UserList} from "./applicationAssets/UserList";
 
 
 
