@@ -192,7 +192,7 @@ const HandPlus = props => {
             highestCardOnTable = calcHigherCard(c, highestCardOnTable);
           }
           if (highestCardOnTable.isTrumpf) {
-            if (card == calcHigherCard(card, highestCardOnTable)) {
+            if (card === calcHigherCard(card, highestCardOnTable)) {
               return true;
             } else {
               for (let c of props.cards) {
@@ -213,7 +213,7 @@ const HandPlus = props => {
 
   return (
       <HandContainer layout={props.layout} cardSize={props.cardSize}>
-        {props.layout ? resetStyle(props.layout) : <></>}
+        {props.layout ? resetStyle() : <></>}
         {props.cards.map((card, index) =>
             <PlayingCardPlus
                 key={index}

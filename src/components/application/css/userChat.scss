@@ -144,6 +144,41 @@
 
 // customization of @chatscope/chat-ui-kit-styles/dist/default/styles.min.css
 
+.custom-cs-input-wrapper {
+    position: relative;
+
+    & .emoji-button-wrapper {
+        position: absolute;
+        border: none;
+        background: none;
+        height: calc(100% - 0.6em);
+        aspect-ratio: 87 / 79;
+        top: 0.3em;
+        left: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: grey;
+        &:hover {
+            opacity: 0.6;
+        }
+        & > i {
+            flex: 1 0 auto;
+        }
+    }
+
+    & .picker-wrapper {
+        position: absolute;
+        bottom: 100%;
+        left: 0;
+        display: flex;
+
+        & .emoji {
+            overflow: hidden;
+        }
+    }
+}
+
 .cs-main-container {
     position: relative;
     display: flex;
@@ -163,7 +198,7 @@
     flex-basis: 300px;
     border-top: solid 0px #d1dbe4;
     border-right: solid 1px #d1dbe4;
-    border-botton: solid 0px #d1dbe4;
+    border-bottom: solid 0px #d1dbe4;
     border-left: solid 0px #d1dbe4;
     box-shadow: 2px 0 5px -2px rgba(0, 0, 0, 0.38);
     z-index: 2
@@ -184,7 +219,7 @@
     max-width: 320px;
     border-top: solid 0px #d1dbe4;
     border-right: solid 0px #d1dbe4;
-    border-botton: solid 0px #d1dbe4;
+    border-bottom: solid 0px #d1dbe4;
     border-left: solid 1px #d1dbe4
 }
 
@@ -1260,7 +1295,6 @@
 }
 
 .cs-input-toolbox .cs-button {
-    margin: 0;
     padding: 0;
     background: none;
     border: none;
@@ -1889,7 +1923,6 @@
 }
 
 .cs-status--dnd .cs-status__bullet {
-    background-color: #ec1212;
     background: radial-gradient(circle at 3px 3px, #f89f9f, #ec1212)
 }
 
@@ -1898,7 +1931,6 @@
 }
 
 .cs-status--invisible .cs-status__bullet {
-    background-color: #c2d1d9;
     background: radial-gradient(circle at 3px 3px, #fff, #c2d1d9)
 }
 
@@ -2065,7 +2097,6 @@
     user-select: none;
     padding: 0.8em 0.8em;
     align-items: center;
-    user-select: none;
     cursor: pointer
 }
 
@@ -2116,7 +2147,6 @@
     display: flex;
     flex-direction: row;
     margin: 0;
-    padding: 0;
     background-color: #c6e3fa;
     align-items: center;
     position: relative;
@@ -2272,8 +2302,8 @@
 }
 
 .cs-button--attachment {
-    color: grey;
-    background-color: rgba(0, 0, 0, 0)
+    color: transparent;
+    background-color: rgba(0, 0, 0, 0);
 }
 
 .cs-loader {

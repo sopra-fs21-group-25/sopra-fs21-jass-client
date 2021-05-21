@@ -270,6 +270,7 @@ const StylishInput = styled.input`
     font-family: 'Saira', sans-serif;
     font-weight: 300;
     font-style: italic;
+    pointer-events: none;
   }
   
   &:focus::-webkit-input-placeholder {

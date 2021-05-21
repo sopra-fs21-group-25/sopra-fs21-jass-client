@@ -9,6 +9,7 @@ import { Menu, Item, theme, useContextMenu } from 'react-contexify';
 import {UserChat} from './UserChat';
 import 'react-contexify/dist/ReactContexify.css';
 import * as ReactDOM from "react-dom";
+import {UserType} from "../../shared/models/UserType";
 
 const FRIEND_MENU_ID = 'friend_menu_id';
 const USER_MENU_ID = 'user_menu_id';
@@ -127,12 +128,15 @@ export const UserList = () => {
 
   const {show} = useContextMenu();
   const displayMenu = (event, user, menuId) => {
-    show(event, {
-      id: menuId,
-      props: {
-        user: user
-      }
-    });
+    event.preventDefault();
+    if(thisUser.userType !== UserType.GUEST && user.userType !== UserType.GUEST) {
+      show(event, {
+        id: menuId,
+        props: {
+          user: user
+        }
+      });
+    }
   };
 
   const inputStyle = {
@@ -354,7 +358,7 @@ export const UserList = () => {
                           type={'text'}
                           placeholder={'search online users...'}
                           onChange={e => setGlobalSearch(e.target.value)}
-                          defaultIcon={'search_outline'}
+                          defaultIcon={'search'}
                           highlightIcon={'search'}
                           defaultIconColor={'rgba(221, 221, 221, 0.5)'}
                           highlightIconColor={'rgba(221, 221, 221, 0.9)'}
@@ -377,7 +381,7 @@ export const UserList = () => {
                       context menu inside the 'relative' positioned pane element
                       */}
                         <Menu id={USER_MENU_ID} theme={theme.dark}>
-                          <Item onClick={e => sendFriendRequest(e.props.user.id)}>📜 send friend request</Item>
+                          <Item onClick={e => sendFriendRequest(e.props.user.id)}>🕊️ send friend request</Item>
                         </Menu>
                       </Portal>
                     </ColumnWrapper>
@@ -450,6 +454,11 @@ const UserItemWrapper = styled.div`
   display: flex;
   box-shadow: inset 0 5px 8px -6px rgb(52, 52, 52), inset 0 -5px 8px -6px rgb(52, 52, 52);
   background: rgba(175, 175, 175, 0.6);
+ 
+  
+  &:hover {
+    background: rgba(195, 195, 195, 0.6);
+  }
 
   & > div.status-box {
     height: 100%;
@@ -459,6 +468,7 @@ const UserItemWrapper = styled.div`
     align-items: center;
     justify-content: center;
     color: ${props => props.status === 'ONLINE' ? '#048e11' : '#bf0101'};
+    pointer-events: none;
   }
   
   & > div.username-box {
@@ -468,6 +478,7 @@ const UserItemWrapper = styled.div`
     font-size: 1.2rem;
     display: flex;
     align-items: center;
+    pointer-events: none;
   }
 `;
 
@@ -631,5 +642,11 @@ const ListWrapper = styled.div`
   margin-right: 5%;
   display: block;
   z-index: 38;
+
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Old versions of Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none; /* Non-prefixed version, currently supported by Chrome, Edge, Opera and Firefox */
 `;
 

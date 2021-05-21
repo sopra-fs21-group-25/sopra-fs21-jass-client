@@ -1,11 +1,10 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {BackgroundContainer} from "../../helpers/layout";
+import React, {useEffect, useState} from 'react';
+import {BackgroundContainer, BaseContainer} from "../../helpers/layout";
 import {api} from "../../helpers/api";
 import {useStompClient, useSubscription} from 'react-stomp-hooks';
-import {useHistory, useLocation} from "react-router-dom";
+import {useHistory} from "react-router-dom";
 import '../cards/index.css';
 import styled from 'styled-components';
-import { BaseContainer } from '../../helpers/layout';
 import Dialog from "@material-ui/core/Dialog";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import List from '@material-ui/core/List';
@@ -13,7 +12,6 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import DialogActions from '@material-ui/core/DialogActions';
 import Button from '@material-ui/core/Button';
-import '../cards/index.css';
 
 import acorn from "../../views/images/icons/acorn.png";
 import rose from "../../views/images/icons/rose.png";
@@ -28,7 +26,6 @@ import questionmark from "../../views/images/icons/questionmark.png";
 import InitDistributionPlus from "../cards/InitDistributionPlus";
 
 
-
 const CurrentModeContainer = styled(BaseContainer)`
   position: absolute;
   left: 3em;
@@ -40,8 +37,8 @@ const ScoreContainer = styled(BaseContainer)`
   position: absolute;
   width: 200px;
   height: 400px;
-  right: 50px,
-  top: 20px,
+  right: 50px;
+  top: 20px;
   background-color: white;
   border-radius: 50%;
   text-align: center;
@@ -106,11 +103,10 @@ const GamePlus = props => {
   const getLabelledIngameModes = modes => {
     if(modes == null) return null;
 
-    const labelledIngameModes = [...modes];
-    labelledIngameModes.map(mode => {
+    return [...modes].map(mode => {
       mode.text = `${mode.ingameMode} x${mode.multiplicator}`;
 
-      switch(mode.ingameMode){
+      switch (mode.ingameMode) {
         case "ACORN":
           mode.value = acorn;
           break;
@@ -144,8 +140,6 @@ const GamePlus = props => {
 
       return mode;
     });
-
-    return labelledIngameModes;
   }
 
   // handles the put request and stomp notifications if the player who chooses the

@@ -1,14 +1,29 @@
-import React, {useEffect, useRef} from 'react';
-import {useSwipeScroll} from "../../../helpers/useSwipeScroll";
+import React, {useState, useRef} from 'react';
+import {useSwipeScroll, useOutsideClickHandler} from "../../../helpers/customHooks";
 import {MainContainer, ChatContainer, MessageList, Message, MessageInput} from "@chatscope/chat-ui-kit-react";
+import Picker from 'emoji-picker-react';
 import '../css/userChat.scss';
 
 
 
 export const UserChat = props => {
-  useEffect(() => {
-    console.log({datasource: props.activeTab?.messageObj})
-  })
+  const [hidePicker, setHidePicker] = useState(true);
+  const [chatInput, setChatInput] = useState('');
+
+  const pickerRef = useRef(null);
+
+  useOutsideClickHandler(pickerRef, () => setHidePicker(true));
+
+  const handleEmojiPick = emoji => setChatInput(chatInput + emoji);
+
+
+  const handleSend = () => {
+    // TODO: backend stuff etc...
+
+    setChatInput('');
+  }
+
+
   return (
       <>
         {props.isOpen ?
@@ -32,13 +47,32 @@ export const UserChat = props => {
                 <MainContainer className={'chat-container-custom-layout'}>
                   <ChatContainer className={'chat-container-custom-layout'}>
                     <MessageList className={'chat-container-custom-layout'}>
-                      {props.activeTab?.messageObj.map(m =>
-                          <Message model={m}>
+                      {props.activeTab?.messageObj.map((m, index) =>
+                          <Message model={m} key={index}>
                             <Message.Footer sentTime={m.sentTime}/>
                           </Message>
                       )}
                     </MessageList>
-                    <MessageInput placeholder={'type a message...'} sendDisabled={false}/>
+                    <div as={MessageInput} className={'custom-cs-input-wrapper'}>
+                      <MessageInput
+                          placeholder={'type a message...'}
+                          sendDisabled={false}
+                          attachDisabled={true}
+                          value={chatInput}
+                          onChange={e => setChatInput(e)}
+                          onSend={() => handleSend()}
+                      />
+                      <button className={'emoji-button-wrapper'} onClick={() => setHidePicker(prev => !prev)}>
+                        <i className={'material-icons'}>emoji_emotions</i>
+                      </button>
+                      <div hidden={hidePicker} className={'picker-wrapper'} ref={pickerRef}>
+                        <Picker
+                            onEmojiClick={(e, data) => handleEmojiPick(data.emoji)}
+                            className={'picker-layout'}
+                            pickerStyle={{boxShadow: 'none', width: '100%'}}
+                        />
+                      </div>
+                    </div>
                   </ChatContainer>
                 </MainContainer>
               </div>
