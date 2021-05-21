@@ -1,7 +1,6 @@
 import React, {useEffect, useRef} from 'react';
 import {useSwipeScroll} from "../../../helpers/useSwipeScroll";
-import {MainContainer, ChatContainer, MessageList, Message, MessageInput, InputToolbox, AttachmentButton} from "@chatscope/chat-ui-kit-react";
-import 'react-chat-elements/dist/main.css';
+import {MainContainer, ChatContainer, MessageList, Message, MessageInput} from "@chatscope/chat-ui-kit-react";
 import '../css/userChat.scss';
 
 
