@@ -1,6 +1,6 @@
 
 export const UserType = Object.freeze({
   REGISTERED: 'RegisteredUser',
-  FACEBOOK: 'FacebookUser',
+  GOOGLE: 'GoogleUser',
   GUEST: 'GuestUser'
 })
