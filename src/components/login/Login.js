@@ -80,10 +80,46 @@ class Login extends React.Component {
     }
   }
 
+  async getBase64FromUrl(url) {
+    const data = await fetch(url);
+    const blob = await data.blob();
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(blob); 
+      reader.onloadend = () => {
+        const base64data = reader.result;   
+        resolve(base64data);
+      }
+    });
+  }
+
+  uploadImage(imgUrl, userId) {
+    this.getBase64FromUrl(imgUrl).then(async img => { 
+      var binary = atob(img.split(',')[1]);
+      var array = [];
+      for(var i = 0; i < binary.length; i++) {
+          array.push(binary.charCodeAt(i));
+      }
+      var blob = new Blob([new Uint8Array(array)], {type: 'image/jpeg'});
+
+      let formData = new FormData();
+      formData.append("file", blob);
+      
+      const response = await api.post("/files/" + userId, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+    }).catch(error => {
+      console.log(error)
+    });
+  }
+
   async loginGoogleUser(user_obj) {
     try {
+      console.log(user_obj);
       const requestBody = JSON.stringify({
-        username: user_obj.profileObj.email,
+        username: user_obj.profileObj.email.split('@')[0],
         password: user_obj.profileObj.googleId
       });
 
@@ -101,7 +137,7 @@ class Login extends React.Component {
       // google user doesn't exist in db, regestring user
       try {
         const requestBody = JSON.stringify({
-          username: user_obj.profileObj.email,
+          username: user_obj.profileObj.email.split('@')[0],
           password: user_obj.profileObj.googleId,
           userType: UserType.REGISTERED
         });
@@ -115,6 +151,12 @@ class Login extends React.Component {
             sessionStorage.setItem('user', JSON.stringify(user));
             console.log(user)
             console.log('CREATING NEW USER.')
+
+            // uploading profile img
+            if (user_obj.profileObj.imageUrl) {
+              console.log(user_obj.profileObj.imageUrl);
+              this.uploadImage(user_obj.profileObj.imageUrl, user.id)
+            }
 
             this.props.history.push(`/menu`);
 
