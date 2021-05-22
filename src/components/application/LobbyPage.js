@@ -268,6 +268,6 @@ export default LobbyPage;
 
 // leveraged to exclude the users that are currently in the lobby from the list of users one can invite
 function excludeSublist(list, sublist) {
-  const subset = new Set(sublist);
-  return [...new Set(list.filter(el => !subset.has(el)))];
+  const lobbyUserIds = new Set(sublist.map(u => u.id));
+  return [...new Set(list.filter(el => !lobbyUserIds.has(el.id)))];
 }

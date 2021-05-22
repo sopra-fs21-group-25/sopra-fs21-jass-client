@@ -24,6 +24,7 @@ import gusti from "../../views/images/icons/gusti.png";
 import mary from "../../views/images/icons/mary.png";
 import questionmark from "../../views/images/icons/questionmark.png";
 import InitDistributionPlus from "../cards/InitDistributionPlus";
+import {Spinner} from "../../views/design/Spinner";
 
 
 const CurrentModeContainer = styled(BaseContainer)`
@@ -39,8 +40,7 @@ const ScoreContainer = styled(BaseContainer)`
   height: 400px;
   right: 50px;
   top: 20px;
-  background-color: white;
-  border-radius: 50%;
+  background-color: transparent;
   text-align: center;
 `;
 
@@ -76,6 +76,8 @@ const GamePlus = props => {
   const [patchGameStateSwitch, setPatchGameStateSwitch] = useState(false);
 
   const [endGameText, setEndGameText] = useState("");
+
+  const [{canShove, gotShoved}, setShovingState] = useState({canShove: false, gotShoved: false});
   
   const history = useHistory();
   /* Game state
@@ -144,9 +146,25 @@ const GamePlus = props => {
 
   // handles the put request and stomp notifications if the player who chooses the
   // ingameMode at round start has actually chosen an ingameMode
-  const handleIngameModeChosen = ingameMode => {
+  const handleIngameModeChosen = async ingameMode => {
+    if(gotShoved) {
+      stompClient.publish({
+        destination: `/app/games/${gameId}/shove/notify/${partnerId}`,
+        body: JSON.stringify(ingameMode.ingameMode)
+      });
+      setShovingState({canShove: false, gotShoved: false});
+    } else {
+      await updateGameState(null, ingameMode);
+    }
     setStartOfRound(false);
-    updateGameState(null, ingameMode);
+  }
+
+  const handleDoShove = () => {
+    setStartOfRound(false);
+    stompClient.publish({
+      destination: `/app/games/${gameId}/shove/notify/${partnerId}`,
+      body: JSON.stringify("choose")
+    })
   }
 
   const handleScoreDialogClose = () => {
@@ -165,7 +183,7 @@ const GamePlus = props => {
   const updateGameState = async (playedCard, ingameMode) => {
 
     let payload;
-
+    console.log({ingameMode});
     if(!playedCard && ingameMode) {
       // case if ingameMode has been chosen but obviously no card played yet
 
@@ -235,8 +253,11 @@ const GamePlus = props => {
         setGameEnded(true);
         setEndGameText(`${scoreText[myIndex % 2]} won the game!`); 
       } else {
-      setStartOfRound(true);
-      setShowScoreDialog(true);
+        setStartOfRound(true);
+        setShowScoreDialog(true);
+        if(newState['idOfRoundStartingPlayer'] === myId && cardsPlayed.every(card => card == null)) {
+          setShovingState({canShove: true, gotShoved: false});
+        }
       }
     } else {
       setStartOfRound(false);
@@ -255,9 +276,7 @@ const GamePlus = props => {
   const ingameModes = getLabelledIngameModes(props.initialGameState.ingameModes);
   const pointsToWin = props.initialGameState.pointsToWin;
 
-
   const stompClient = useStompClient();
-
   const scoreText = ["Your team", "Opponent team"];
 
   /*
@@ -266,7 +285,6 @@ const GamePlus = props => {
 
   // the actual worker responsible for patching the game state to the true current game state
   useEffect(() => {
-    console.log('useEffect start reached');
     // fetches and sets the current game state from our single source of truth, the holy backend
     const fetchAndSet = async () => {
       const response = await api.get(`/games/${gameId}/${myId}`);
@@ -283,8 +301,7 @@ const GamePlus = props => {
       synchronizeMyGameState(newGameState);
     };
 
-    fetchAndSet();
-
+    void fetchAndSet();
   }, [patchGameStateSwitch])
 
   // upon notification to re-fetch the updated game state...
@@ -293,6 +310,18 @@ const GamePlus = props => {
 
     // simply trigger above useEffect
     setPatchGameStateSwitch(prev => !prev);
+  });
+
+  useSubscription(`/games/${gameId}/shove/receive/${myId}`, msg => {
+    console.log({msg});
+    void (async data => {
+      if(data === 'choose') {
+        setShovingState({canShove: false, gotShoved: true});
+      } else {
+        setShovingState({canShove: false, gotShoved: false});
+        await updateGameState(null, {ingameMode: data});
+      }
+    })(JSON.parse(msg.data));
   });
 
 
@@ -332,16 +361,29 @@ const GamePlus = props => {
             </Button>
         </DialogActions>
         </Dialog>
-        <Dialog open={!showScoreDialog && startOfRound && idOfRoundStartingPlayer === myId && cardsPlayed.every(card => card == null)}>
+        <Dialog open={(!showScoreDialog && startOfRound && idOfRoundStartingPlayer === myId && cardsPlayed.every(card => card == null)) || gotShoved}>
           <DialogTitle>{"Please choose in-game mode"}</DialogTitle>
           <List>
-            {ingameModes ? ingameModes.map((mode, index) => (
-                <ListItem key={index} button onClick={() => handleIngameModeChosen(mode)}>
-                  <div><img src={mode.value} height={'30px'} width={'40px'} margin={'5px'}/></div>
-                  <ListItemText primary={mode.text} />
-                </ListItem>
-            )) : <></>}
+            {ingameModes ?
+                <>
+                  {ingameModes.map((mode, index) => (
+                    <ListItem key={index} button onClick={() => handleIngameModeChosen(mode)}>
+                      <div><img src={mode.value} height={'30px'} width={'40px'} margin={'5px'}/></div>
+                      <ListItemText primary={mode.text} />
+                    </ListItem>
+                  ))}
+                  {canShove ?
+                    <ListItem button onClick={() => handleDoShove()}>
+                      <ListItemText>Shove</ListItemText>
+                    </ListItem>
+                  :<></>}
+                </>
+            :<></>}
           </List>
+        </Dialog>
+        <Dialog open={canShove && !startOfRound}>
+          <DialogTitle style={{fontFamily: 'Satisfy', fontWeight: 600, fontSize: '1.6rem'}}>Waiting for your partner</DialogTitle>
+          <Spinner/>
         </Dialog>
         <CurrentModeContainer>
           <Label style={{backgroundColor: "white", textAlign: "center"}}>
