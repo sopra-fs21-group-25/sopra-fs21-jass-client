@@ -6,6 +6,7 @@ import { api, handleError } from '../../helpers/api';
 import { Button } from '../../views/design/Button';
 import {withRouter} from 'react-router-dom';
 import '../application/css/menu.css';
+import {convertBase64DataToImageUrl} from "../../helpers/convertBase64DataToImage";
 
 
 
@@ -141,7 +142,7 @@ class ProfilePage extends React.Component {
             const responseImage = await api.get('/files/' + this.state.user.id);
 
             if (responseImage.status === 200) {
-                this.convertToImage(responseImage.data);
+                this.setState({currentFile: convertBase64DataToImageUrl(responseImage.data)});
             }
 
             this.setState({
@@ -188,24 +189,8 @@ class ProfilePage extends React.Component {
         });
 
         if (response.status === 200) {
-            this.convertToImage(response.data);
+            this.setState({currentFile: convertBase64DataToImageUrl(response.data)});
         }
-    }
-
-    convertToImage(data) {
-        const byteCharacters = atob(data);
-        const byteNumbers = new Array(byteCharacters.length);
-
-        for (let i = 0; i < byteCharacters.length; i++) {
-            byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
-
-        const byteArray = new Uint8Array(byteNumbers);
-
-        let image = new Blob([byteArray], { type: 'image/jpeg' });
-        let imageUrl = URL.createObjectURL(image);
-
-        this.setState({currentFile: imageUrl});
     }
 
 

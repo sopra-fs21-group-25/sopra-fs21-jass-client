@@ -38,7 +38,7 @@ const LobbyPage = () => {
     try {
       if(iAmCreator) {
         // if creator leaves lobby then delete lobby in the database
-        await api.put(`/lobbies/${thisLobby.id}/close`);
+        await api.delete(`/lobbies/${thisLobby.id}/delete/cascade`);
 
         // notify other users in the lobby it has been shut down
         stompClient.publish({
@@ -69,7 +69,7 @@ const LobbyPage = () => {
     try {
       if(iAmCreator) {
         // delete lobby in the database
-        await api.put(`/lobbies/${thisLobby.id}/close`);
+        await api.put(`/lobbies/${thisLobby.id}/delete/no-cascade`);
       }
     } catch(error) {
       alert('could not clean up lobby, something went wrong...');
@@ -94,7 +94,8 @@ const LobbyPage = () => {
         player0id: player0id,
         player1id: player1id,
         player2id: player2id,
-        player3id: player3id
+        player3id: player3id,
+        prevLobbyId: thisLobby.id
       });
 
       const gamePostResponse = await api.post('/games', postPayload);

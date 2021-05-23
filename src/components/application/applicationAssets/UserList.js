@@ -1,15 +1,17 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import styled from 'styled-components';
 import {Col, Nav, Row, Tab} from "react-bootstrap";
 import {GlowButton, IconicInput} from "../../../views/design/ElegantAssets";
 import {api} from "../../../helpers/api";
 import {useHistory} from "react-router-dom";
 import {useStompClient, useSubscription} from "react-stomp-hooks";
-import { Menu, Item, theme, useContextMenu } from 'react-contexify';
+import {Item, Menu, theme, useContextMenu} from 'react-contexify';
 import {UserChat} from './UserChat';
 import 'react-contexify/dist/ReactContexify.css';
 import * as ReactDOM from "react-dom";
 import {UserType} from "../../shared/models/UserType";
+import {convertBase64DataToImageUrl} from "../../../helpers/convertBase64DataToImage";
+import questionMark from '../../../views/images/icons/questionmark.png';
 
 const FRIEND_MENU_ID = 'friend_menu_id';
 const USER_MENU_ID = 'user_menu_id';
@@ -17,99 +19,22 @@ const appRoot = document.getElementById('root');
 
 
 export const UserList = () => {
-
-  const dummyObjects = [
-    {user: {id: 0, username: 'albert'}, messageObj: [
-        {
-          message: "Lorem ipsum.",
-          sentTime: "just now",
-          direction: "incoming",
-          position: "single"
-        },
-        {
-          message: "sit ament bli bla blup.",
-          sentTime: "just now",
-          direction: "outgoing",
-          position: "single"
-        }
-      ]},
-    {user: {id: 1, username: 'betsy'}, messageObj: [
-        {
-          message: "Lorem ipsum.",
-          sentTime: "just now",
-          direction: "incoming",
-          position: "single"
-        },
-        {
-          message: "sit ament bli bla blup.",
-          sentTime: "just now",
-          direction: "outgoing",
-          position: "single"
-        }
-      ]},
-    {user: {id: 2, username: 'colt'}, messageObj: [
-        {
-          message: "Lorem ipsum.",
-          sentTime: "just now",
-          direction: "incoming",
-          position: "single"
-        },
-        {
-          message: "sit ament bli bla blup.",
-          sentTime: "just now",
-          direction: "outgoing",
-          position: "single"
-        }
-      ]},
-    {user: {id: 3, username: 'duster'}, messageObj: [
-        {
-          message: "Lorem ipsum.",
-          sentTime: "just now",
-          direction: "incoming",
-          position: "single"
-        },
-        {
-          message: "sit ament bli bla blup.",
-          sentTime: "just now",
-          direction: "outgoing",
-          position: "single"
-        }
-      ]},
-    {user: {id: 4, username: 'etienne'}, messageObj: [
-        {
-          message: "Lorem ipsum.",
-          sentTime: "just now",
-          direction: "incoming",
-          position: "single"
-        },
-        {
-          message: "sit ament bli bla blup.",
-          sentTime: "just now",
-          direction: "outgoing",
-          position: "single"
-        }
-      ]},
-    {user: {id: 5, username: 'francis'}, messageObj: [
-        {
-          message: "Lorem ipsum.",
-          sentTime: "just now",
-          direction: "incoming",
-          position: "single"
-        },
-        {
-          message: "sit ament bli bla blup.",
-          sentTime: "just now",
-          direction: "outgoing",
-          position: "single"
-        }
-      ]},
-  ]
-
   const [thisUser] = useState(JSON.parse(sessionStorage.getItem('user')));
+  const profilePictureCollection = useRef({});
 
   const [showChat, setShowChat] = useState(false);
-  const [userMessageObjPairs, setUserMessageObjPairs] = useState(dummyObjects);
   const [activeChatTab, setActiveChatTab] = useState(null);
+  const [chatData = [{
+    chatPartnerId: String,
+    chatPartnerUsername: String,
+    messageData: [{
+      senderId: String,
+      senderUsername: String,
+      timestamp: Date,
+      text: String
+    }]
+  }], setChatData] = useState([]);
+
 
   const [friendRequests, setFriendRequests] = useState([]);
   const [fetchRequestsSwitch, setFetchRequestsSwitch] = useState(false);
@@ -154,11 +79,16 @@ export const UserList = () => {
 
   useEffect(() => {
     const fetchAndSetFriends = async () => {
-      const friendResponse = await api.get(`/friends/${thisUser.id}`);
-      setFriends(friendResponse.data);
-      return friendResponse.data;
+      const fetchedFriends = (await api.get(`/friends/${thisUser.id}`)).data;
+      for(let f of fetchedFriends) {
+        if(!profilePictureCollection.current[f.id]) {
+          profilePictureCollection.current[f.id] = convertBase64DataToImageUrl((await api.get(`/files/${f.id}`)).data);
+        }
+      }
+      setFriends(fetchedFriends);
+      return fetchedFriends;
     };
-    fetchAndSetFriends().then(setFriends => console.log('Fetched and set friends: ', {setFriends}));
+    fetchAndSetFriends().then(fetchedFriends => console.log('Fetched and set friends: ', {fetchedFriends}));
   }, [fetchFriendsSwitch]);
 
   useEffect(() => {
@@ -172,18 +102,22 @@ export const UserList = () => {
 
   useEffect(() => {
     const fetchAndSetRemainingUsers = async () => {
-      const usersResponse = await api.get(`/users/not_friends/${thisUser.id}`);
-      setRemainingUsers(usersResponse.data);
-      return usersResponse.data;
+      const fetchedUsers = (await api.get(`/users/not_friends/${thisUser.id}`)).data;
+      for(let u of fetchedUsers) {
+        if(!profilePictureCollection[u.id]) {
+          profilePictureCollection.current[u.id] = convertBase64DataToImageUrl((await api.get(`/files/${u.id}`)).data)
+        }
+      }
+      setRemainingUsers(fetchedUsers);
+      return fetchedUsers;
     };
-    fetchAndSetRemainingUsers().then(setUsers => console.log('Fetched and set remaining users: ', {setUsers}));
+    fetchAndSetRemainingUsers().then(fetchedUsers => console.log('Fetched and set remaining users: ', {fetchedUsers}));
   }, [fetchUsersSwitch]);
 
   // use the following useEffect to re-fetch friends and users every 10 sec
   useEffect(() => {
     const interval = setInterval(() => {
       setFetchUsersSwitch(prev => !prev);
-      setFetchFriendsSwitch(prev => !prev);
     }, 10000);
 
     // cleanup
@@ -203,10 +137,34 @@ export const UserList = () => {
     }
   });
 
-  useSubscription(`/friends/notify_remove/${thisUser.id}`, () => {
-    setFetchFriendsSwitch(!fetchFriendsSwitch);
+  useSubscription(`/friends/notify_remove/${thisUser.id}`, msg => {
+    const updatedFriends = friends.filter(f => f.id !== msg.body);
+    setFriends(updatedFriends);
     setFetchUsersSwitch(!fetchUsersSwitch);
   });
+
+  useSubscription(`/messages/outgoing/${thisUser.id}`, async msg => {
+    const dto = JSON.parse(msg.body);
+    const messageDataObj = convertChatMessageDTOtoMessageDataObj(dto);
+    const chatPartnerId = getChatPartnerIdFromChatMessageDTO(dto);
+
+    const chatDataObjIndex = chatData.findIndex(data => data.chatPartnerId === chatPartnerId);
+    let chatDataObj = chatDataObjIndex !== -1 ? chatData[chatDataObjIndex] : undefined;
+
+    if(chatDataObj) {
+      const newChatData = [...chatData];
+      newChatData.splice(
+          chatDataObjIndex,
+          1,
+          {...chatDataObj, messageData: [...chatDataObj.messageData, messageDataObj]}
+      );
+      setChatData(newChatData);
+    } else {
+      chatDataObj = await fetchChatDataObjByChatPartnerId(chatPartnerId);
+      setChatData([...chatData, chatDataObj]);
+    }
+  });
+
 
 
   const acceptFriendRequest = async fromId => {
@@ -236,56 +194,103 @@ export const UserList = () => {
   }
   const removeFriend = async friendId => {
     await api.delete(`/friends/${thisUser.id}/${friendId}`);
-    setFetchFriendsSwitch(!fetchFriendsSwitch);
+    const updatedFriends = friends.filter(f => f.id !== friendId);
+    setFriends(updatedFriends);
     setFetchUsersSwitch(!fetchUsersSwitch);
 
     stompClient.publish({
-      destination: `/app/friends/notify_remove/${friendId}`
+      destination: `/app/friends/notify_remove/${friendId}`,
+      body: thisUser.id
     })
   }
 
 
+
   // triggers chat with a friend when via contextmenu 'send message' is clicked
-  const triggerChatWithUser = async user => {
-    let activeTab = null;
-    if(!userMessageObjPairs.map(pair => pair.user.id).includes(user.id)) {
-      // TODO: uncomment and set correct endpoint when backend set up
-      /*
-      const response = await api.get(`/ENDPOINT`);
-      const newUserMessageObjPair = {user: user, messageObj: response.data};
-      setUserMessageObjPairs([...userMessageObjPairs, newUserMessageObjPair]);
-      activeTab = newUserMessageObjPair;
-      */
-      alert('Backend is not yet set up for this feature!');
-    } else {
-      activeTab = userMessageObjPairs.filter(pair => pair.user.id === user.id)[0];
+  const triggerChatWithUser = async chatPartner => {
+    let activeTab = chatData.find(data => data.chatPartnerId === chatPartner.id);
+    if(!activeTab) {
+      const chatDataObj = await fetchChatDataObjByChatPartnerId(chatPartner.id);
+      console.log({chatDataObj});
+      setChatData([...chatData, chatDataObj]);
+      activeTab = chatDataObj;
     }
-    setShowChat(true);
     openChatTab(activeTab);
+    setShowChat(true);
+  }
+
+  const fetchChatDataObjByChatPartnerId = async chatPartnerId => {
+    try {
+      const data = (await api.get(`/messages/bidirectional/${thisUser.id}/${chatPartnerId}`)).data;
+      console.log({data});
+      const chatPartnerUsername = (await api.get(`/users/${chatPartnerId}`)).data.username;
+      return {
+        chatPartnerId: chatPartnerId,
+        chatPartnerUsername: chatPartnerUsername,
+        messageData: data.length ? data.map(d => convertChatMessageDTOtoMessageDataObj(d)) : []
+      };
+    } catch(error) {
+      alert(`Something went wrong on the server side: ${error}`);
+    }
   }
 
   // opens an already present but currently not active chat tab with a friend
-  const openChatTab = userMsgObjPair => {
-    setActiveChatTab(userMsgObjPair);
+  const openChatTab = chatDataObj => {
+    setActiveChatTab(chatDataObj);
   }
 
   // closes an already present chat tab and in case of closing the active tab no tab becomes active
-  const removeUserMessageObjPair = userMsgObjPair => {
-    if(activeChatTab?.user.id === userMsgObjPair.user.id) { setActiveChatTab(null) }
-    setUserMessageObjPairs(userMessageObjPairs.filter(pair => pair.user.id !== userMsgObjPair.user.id));
+  const removeChatDataObj = chatDataObj => {
+    const activeIndex = chatData.findIndex(data => data.chatPartnerId === chatDataObj.chatPartnerId);
+    if(activeChatTab.chatPartnerId === chatDataObj.chatPartnerId) {
+      if(chatData.length > 1) {
+        setActiveChatTab(activeIndex === 0 ? chatData[1] : chatData[activeIndex - 1]);
+      } else {
+        setActiveChatTab(null);
+      }
+    }
+    const newChatData = [...chatData];
+    newChatData.splice(activeIndex, 1);
+    setChatData(newChatData);
   }
 
 
 
+  const convertChatMessageDTOtoMessageDataObj = dto => {
+    return {
+      senderId: dto.senderId,
+      senderUsername: dto.senderUsername,
+      timestamp: new Date(dto.timestamp),
+      text: dto.text
+    };
+  }
+  const getChatPartnerIdFromChatMessageDTO = dto => {
+    return dto?.senderId === thisUser.id ? dto?.environmentId : dto?.senderId;
+  }
+  const appendMessageToActiveChat = messageDataObj => {
+    const chatDataObjIndex = chatData.findIndex(data => data.chatPartnerId === activeChatTab.chatPartnerId);
+    const chatDataObj = chatData[chatDataObjIndex];
+    const newChatData = [...chatData];
+    newChatData.splice(
+        chatDataObjIndex,
+        1,
+        {...chatDataObj, messageData: [...chatDataObj.messageData, messageDataObj]}
+    );
+    console.log({newChatData});
+    setChatData(newChatData);
+  };
 
   return (
     <ListWrapper>
       <UserChat
           isOpen={showChat}
           activeTab={activeChatTab}
-          allTabs={userMessageObjPairs}
-          closeTab={removeUserMessageObjPair}
+          allTabs={chatData}
+          closeTab={removeChatDataObj}
           openTab={openChatTab}
+          appendMessage={appendMessageToActiveChat}
+          stompClient={stompClient}
+          user={thisUser}
       />
       <ListInner>
         <Tab.Container defaultActiveKey={'global'}>
@@ -335,7 +340,12 @@ export const UserList = () => {
                         return !!friend.username.match(regex);
                       }).map((friend, index) =>
                           <div key={index} onContextMenu={e => displayMenu(e, friend, FRIEND_MENU_ID)}>
-                            <UserItem userId={friend.id} status={friend.status} username={friend.username}/>
+                            <UserItem
+                              userId={friend.id}
+                              status={friend.status}
+                              username={friend.username}
+                              profilePicture={profilePictureCollection.current[friend.id]}
+                            />
                           </div>
                       )}
                       <Portal>
@@ -344,7 +354,7 @@ export const UserList = () => {
                       context menu inside the 'relative' positioned pane element
                       */}
                         <Menu id={FRIEND_MENU_ID} theme={theme.dark}>
-                          <Item onClick={e => triggerChatWithUser(e.props.user)}>📨 send message</Item>
+                          <Item onClick={e => triggerChatWithUser(e.props.user)}>💬 open chat</Item>
                           <Item onClick={e => removeFriend(e.props.user.id)}>❌ remove from friends</Item>
                         </Menu>
                       </Portal>
@@ -372,7 +382,11 @@ export const UserList = () => {
                         return !!user.username.match(regex);
                       }).map((globalUser, index) =>
                           <div key={index} onContextMenu={e => displayMenu(e, globalUser, USER_MENU_ID)}>
-                            <UserItem userId={globalUser.id} status={globalUser.status} username={globalUser.username}/>
+                            <UserItem
+                              userId={globalUser.id}
+                              status={globalUser.status}
+                              username={globalUser.username}
+                              profilePicture={profilePictureCollection.current[globalUser.id]}/>
                           </div>
                       )}
                       <Portal>
@@ -435,38 +449,16 @@ const RequestItem = props => {
   );
 }
 
-function convertToImage(data) {
-  const byteCharacters = atob(data);
-  const byteNumbers = new Array(byteCharacters.length);
-
-  for (let i = 0; i < byteCharacters.length; i++) {
-      byteNumbers[i] = byteCharacters.charCodeAt(i);
-  }
-
-  const byteArray = new Uint8Array(byteNumbers);
-
-  let image = new Blob([byteArray], { type: 'image/jpeg' });
-  let imageUrl = URL.createObjectURL(image);
-
-  return imageUrl;
-}
-
-async function getProfileImage(user_id) {
-  const response = await api.get('/files/' + user_id);
-  document.getElementById(user_id).setAttribute("src", convertToImage(response.data));
-}
-
 const UserItem = props => {
   return (
     <UserItemWrapper status={props.status} style={{padding: "2%"}}>
       <div className={'material-icons status-box'}>
         circle
       </div>
-      <div style={{width: "3.5rem", height: "3.5rem", "margin-right": "5%"}}>
-        <img id={props.userId}
-             alt="profile picture" 
-             style={{borderRadius: "50%", borderRadius: "50%", maxWidth: "100%", maxHeight: "100%", width: "100%", height: "auto"}} 
-             src={getProfileImage(props.userId)}
+      <div style={{width: "3.5rem", height: "3.5rem", marginRight: "5%"}}>
+        <img alt={questionMark}
+             style={{borderRadius: "50%", maxWidth: "100%", maxHeight: "100%", width: "100%", height: "auto"}}
+             src={props.profilePicture}
         />
       </div>
       <div className={'username-box'}>

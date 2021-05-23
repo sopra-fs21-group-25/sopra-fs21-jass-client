@@ -18,10 +18,42 @@ export const UserChat = props => {
 
 
   const handleSend = () => {
-    // TODO: backend stuff etc...
+    if(props.activeTab) {
+      const chatMessageDTO = {
+        senderId: props.user.id,
+        senderUsername: props.user.username,
+        environmentId: props.activeTab.chatPartnerId,
+        groupType: 'BIDIRECTIONAL',
+        timestamp: new Date(),
+        text: chatInput
+      };
 
+      props.appendMessage({
+        senderId: props.user.id,
+        senderUsername: props.user.username,
+        timestamp: chatMessageDTO.timestamp,
+        text: chatInput
+      });
+
+      props.stompClient.publish({
+        destination: `/app/messages/incoming`,
+        body: JSON.stringify(chatMessageDTO)
+      });
+    }
     setChatInput('');
-  }
+  };
+
+
+  const deriveMessageModel = ({senderId, senderUsername, timestamp, text}) => {
+    return {
+      message: text,
+      sentTime: timestamp.toLocaleDateString(),
+      sender: senderUsername,
+      direction: senderId === props.user.id ? 'outgoing' : 'incoming',
+      position: 'single',
+      type: 'text'
+    };
+  };
 
 
   return (
@@ -30,14 +62,15 @@ export const UserChat = props => {
             <div className={'wrapper-root'}>
               <Header>
                 <div className={'header-sub-root-tabs-wrapper'}>
-                  {props.allTabs.map((userMsgObjPair, index) =>
+                  {props.allTabs.map((chatDataObj, index) =>
                       <Tab
                           key={index}
-                          isActive={props.activeTab?.user.id === userMsgObjPair.user.id}
-                          openTab={() => props.openTab(userMsgObjPair)}
-                          closeTab={() => props.closeTab(userMsgObjPair)}
+                          isActive={props.activeTab?.chatPartnerId === chatDataObj.chatPartnerId}
+                          openTab={() => props.openTab(chatDataObj)}
+                          closeTab={() => props.closeTab(chatDataObj)}
                       >
-                        {userMsgObjPair.user.username}
+                        {console.log({chatDataObj})}
+                        {chatDataObj.chatPartnerUsername}
                       </Tab>
                   )}
                 </div>
@@ -47,11 +80,15 @@ export const UserChat = props => {
                 <MainContainer className={'chat-container-custom-layout'}>
                   <ChatContainer className={'chat-container-custom-layout'}>
                     <MessageList className={'chat-container-custom-layout'}>
-                      {props.activeTab?.messageObj.map((m, index) =>
-                          <Message model={m} key={index}>
-                            <Message.Footer sentTime={m.sentTime}/>
-                          </Message>
-                      )}
+                      {props.activeTab && props.allTabs &&
+                      props.allTabs.find(t => t.chatPartnerId === props.activeTab.chatPartnerId)
+                          .messageData.map((m, index) => {
+                            const messageModel = deriveMessageModel(m);
+                            return (
+                                <Message model={messageModel} key={index}>
+                                  <Message.Footer sentTime={messageModel.sentTime}/>
+                                </Message>);
+                      })}
                     </MessageList>
                     <div as={MessageInput} className={'custom-cs-input-wrapper'}>
                       <MessageInput
