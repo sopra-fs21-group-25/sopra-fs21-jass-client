@@ -335,7 +335,7 @@ export const UserList = () => {
                         return !!friend.username.match(regex);
                       }).map((friend, index) =>
                           <div key={index} onContextMenu={e => displayMenu(e, friend, FRIEND_MENU_ID)}>
-                            <UserItem status={friend.status} username={friend.username}/>
+                            <UserItem userId={friend.id} status={friend.status} username={friend.username}/>
                           </div>
                       )}
                       <Portal>
@@ -372,7 +372,7 @@ export const UserList = () => {
                         return !!user.username.match(regex);
                       }).map((globalUser, index) =>
                           <div key={index} onContextMenu={e => displayMenu(e, globalUser, USER_MENU_ID)}>
-                            <UserItem status={globalUser.status} username={globalUser.username}/>
+                            <UserItem userId={globalUser.id} status={globalUser.status} username={globalUser.username}/>
                           </div>
                       )}
                       <Portal>
@@ -435,11 +435,39 @@ const RequestItem = props => {
   );
 }
 
+function convertToImage(data) {
+  const byteCharacters = atob(data);
+  const byteNumbers = new Array(byteCharacters.length);
+
+  for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+  }
+
+  const byteArray = new Uint8Array(byteNumbers);
+
+  let image = new Blob([byteArray], { type: 'image/jpeg' });
+  let imageUrl = URL.createObjectURL(image);
+
+  return imageUrl;
+}
+
+async function getProfileImage(user_id) {
+  const response = await api.get('/files/' + user_id);
+  document.getElementById(user_id).setAttribute("src", convertToImage(response.data));
+}
+
 const UserItem = props => {
   return (
-    <UserItemWrapper status={props.status}>
+    <UserItemWrapper status={props.status} style={{padding: "2%"}}>
       <div className={'material-icons status-box'}>
         circle
+      </div>
+      <div style={{width: "3.5rem", height: "3.5rem", "margin-right": "5%"}}>
+        <img id={props.userId}
+             alt="profile picture" 
+             style={{borderRadius: "50%", borderRadius: "50%", maxWidth: "100%", maxHeight: "100%", width: "100%", height: "auto"}} 
+             src={getProfileImage(props.userId)}
+        />
       </div>
       <div className={'username-box'}>
         {props.username}
