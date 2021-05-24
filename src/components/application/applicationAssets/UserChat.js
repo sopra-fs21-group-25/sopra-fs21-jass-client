@@ -9,15 +9,14 @@ import '../css/userChat.scss';
 export const UserChat = props => {
   const [hidePicker, setHidePicker] = useState(true);
   const [chatInput, setChatInput] = useState('');
-
   const pickerRef = useRef(null);
-
   useOutsideClickHandler(pickerRef, () => setHidePicker(true));
 
   const handleEmojiPick = emoji => setChatInput(chatInput + emoji);
 
 
   const handleSend = () => {
+    console.log({chatInput});
     if(props.activeTab) {
       const chatMessageDTO = {
         senderId: props.user.id,
@@ -69,7 +68,6 @@ export const UserChat = props => {
                           openTab={() => props.openTab(chatDataObj)}
                           closeTab={() => props.closeTab(chatDataObj)}
                       >
-                        {console.log({chatDataObj})}
                         {chatDataObj.chatPartnerUsername}
                       </Tab>
                   )}
@@ -96,7 +94,9 @@ export const UserChat = props => {
                           sendDisabled={false}
                           attachDisabled={true}
                           value={chatInput}
-                          onChange={e => setChatInput(e)}
+                          onChange={e => {
+                            setChatInput((new DOMParser()).parseFromString(e, 'text/html').documentElement.textContent);
+                          }}
                           onSend={() => handleSend()}
                       />
                       <button className={'emoji-button-wrapper'} onClick={() => setHidePicker(prev => !prev)}>

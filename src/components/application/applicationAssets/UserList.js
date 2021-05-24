@@ -11,7 +11,7 @@ import 'react-contexify/dist/ReactContexify.css';
 import * as ReactDOM from "react-dom";
 import {UserType} from "../../shared/models/UserType";
 import {convertBase64DataToImageUrl} from "../../../helpers/convertBase64DataToImage";
-import questionMark from '../../../views/images/icons/questionmark.png';
+import guestIcon from '../../../views/images/icons/guest-icon.svg';
 
 const FRIEND_MENU_ID = 'friend_menu_id';
 const USER_MENU_ID = 'user_menu_id';
@@ -82,7 +82,10 @@ export const UserList = () => {
       const fetchedFriends = (await api.get(`/friends/${thisUser.id}`)).data;
       for(let f of fetchedFriends) {
         if(!profilePictureCollection.current[f.id]) {
-          profilePictureCollection.current[f.id] = convertBase64DataToImageUrl((await api.get(`/files/${f.id}`)).data);
+          profilePictureCollection.current[f.id] =
+              f.userType === UserType.GUEST ?
+                  guestIcon :
+                  convertBase64DataToImageUrl((await api.get(`/files/${f.id}`)).data);
         }
       }
       setFriends(fetchedFriends);
@@ -105,7 +108,10 @@ export const UserList = () => {
       const fetchedUsers = (await api.get(`/users/not_friends/${thisUser.id}`)).data;
       for(let u of fetchedUsers) {
         if(!profilePictureCollection[u.id]) {
-          profilePictureCollection.current[u.id] = convertBase64DataToImageUrl((await api.get(`/files/${u.id}`)).data)
+          profilePictureCollection.current[u.id] =
+              u.userType === UserType.GUEST ?
+                  guestIcon :
+                  convertBase64DataToImageUrl((await api.get(`/files/${u.id}`)).data);
         }
       }
       setRemainingUsers(fetchedUsers);
@@ -126,7 +132,6 @@ export const UserList = () => {
 
 
   useSubscription(`/friend_requests/notify/${thisUser.id}`, msg => {
-    console.log({msg: msg.body});
     if(msg.body === 'new-request') {
       setFetchRequestsSwitch(!fetchRequestsSwitch);
     }
@@ -173,8 +178,6 @@ export const UserList = () => {
     setFetchRequestsSwitch(!fetchRequestsSwitch);
     setFetchUsersSwitch(!fetchUsersSwitch);
 
-    console.log({fromId});
-
     stompClient.publish({
       destination: `/app/friend_requests/${fromId}`,
       body: 'accept-request'
@@ -211,7 +214,6 @@ export const UserList = () => {
     let activeTab = chatData.find(data => data.chatPartnerId === chatPartner.id);
     if(!activeTab) {
       const chatDataObj = await fetchChatDataObjByChatPartnerId(chatPartner.id);
-      console.log({chatDataObj});
       setChatData([...chatData, chatDataObj]);
       activeTab = chatDataObj;
     }
@@ -222,7 +224,6 @@ export const UserList = () => {
   const fetchChatDataObjByChatPartnerId = async chatPartnerId => {
     try {
       const data = (await api.get(`/messages/bidirectional/${thisUser.id}/${chatPartnerId}`)).data;
-      console.log({data});
       const chatPartnerUsername = (await api.get(`/users/${chatPartnerId}`)).data.username;
       return {
         chatPartnerId: chatPartnerId,
@@ -276,7 +277,6 @@ export const UserList = () => {
         1,
         {...chatDataObj, messageData: [...chatDataObj.messageData, messageDataObj]}
     );
-    console.log({newChatData});
     setChatData(newChatData);
   };
 
@@ -456,7 +456,7 @@ const UserItem = props => {
         circle
       </div>
       <div style={{width: "3.5rem", height: "3.5rem", marginRight: "5%"}}>
-        <img alt={questionMark}
+        <img alt={guestIcon}
              style={{borderRadius: "50%", maxWidth: "100%", maxHeight: "100%", width: "100%", height: "auto"}}
              src={props.profilePicture}
         />
@@ -661,7 +661,7 @@ const ListWrapper = styled.div`
   justify-self: end;
   margin-right: 5%;
   display: block;
-  z-index: 38;
+  z-index: 40;
 
   -webkit-touch-callout: none; /* iOS Safari */
   -webkit-user-select: none; /* Safari */

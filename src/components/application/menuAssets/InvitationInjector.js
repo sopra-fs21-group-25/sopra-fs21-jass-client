@@ -94,7 +94,7 @@ const PopupView = styled('div')({
   position: 'fixed',
   width: '100%',
   height: '100%',
-  zIndex: '20',
+  zIndex: '50',
   top: 0,
   left: 0,
   right: 0,

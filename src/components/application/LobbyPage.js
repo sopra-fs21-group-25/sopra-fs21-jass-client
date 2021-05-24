@@ -69,7 +69,7 @@ const LobbyPage = () => {
     try {
       if(iAmCreator) {
         // delete lobby in the database
-        await api.put(`/lobbies/${thisLobby.id}/delete/no-cascade`);
+        await api.delete(`/lobbies/${thisLobby.id}/delete/no-cascade`);
       }
     } catch(error) {
       alert('could not clean up lobby, something went wrong...');

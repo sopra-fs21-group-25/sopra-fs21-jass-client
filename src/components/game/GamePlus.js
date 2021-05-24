@@ -321,7 +321,7 @@ const GamePlus = props => {
         setShovingState({canShove: false, gotShoved: false});
         await updateGameState(null, {ingameMode: data});
       }
-    })(JSON.parse(msg.data));
+    })(JSON.parse(msg.body));
   });
 
 
