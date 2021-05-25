@@ -9,15 +9,6 @@ export const RuleFramer = props => {
   const numItems = React.Children.count(props.children);
   const [itemsPos, setItemsPos] = useState([...(Array(numItems).keys())]);
 
-  const numHeadingBlink = useRef(0);
-  const headingStyle = useSpring({
-    loop: {reverse: true, cancel: () => numHeadingBlink.current >= 5},
-    from: {opacity: 0, fontSize: '1.5rem'},
-    to: {opacity: 1, fontSize: '2rem'},
-    onRest: () => numHeadingBlink.current++
-  });
-
-
   useEffect(() => {
     const handleScroll = event => {
 
@@ -74,9 +65,9 @@ export const RuleFramer = props => {
           >
             previous
           </GlowButton>
-          <animated.h1 style={{...headingStyle, fontFamily: `'Satisfy', cursive`, marginBottom: 0, color: '#dddddd'}}>
+          <h1 style={{fontSize: '2rem', fontFamily: `'Satisfy', cursive`, marginBottom: 0, color: '#dddddd'}}>
             Click or Scroll
-          </animated.h1>
+          </h1>
           <GlowButton
               style={{borderTopRightRadius: '100%', paddingRight: '5%', background: 'rgba(0,0,0,0.6)'}}
               onClick={() => onNext()}

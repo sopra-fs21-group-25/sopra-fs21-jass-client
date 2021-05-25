@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import styled from 'styled-components';
 import {Col, Nav, Row, Tab} from "react-bootstrap";
 import {GlowButton, IconicInput} from "../../../views/design/ElegantAssets";
@@ -11,6 +11,7 @@ import 'react-contexify/dist/ReactContexify.css';
 import * as ReactDOM from "react-dom";
 import {UserType} from "../../shared/models/UserType";
 import {convertBase64DataToImageUrl} from "../../../helpers/convertBase64DataToImage";
+import {UserListContext} from '../../../App'
 import guestIcon from '../../../views/images/icons/guest-icon.svg';
 
 const FRIEND_MENU_ID = 'friend_menu_id';
@@ -18,32 +19,35 @@ const USER_MENU_ID = 'user_menu_id';
 const appRoot = document.getElementById('root');
 
 
-export const UserList = () => {
+export const UserList = props => {
   const [thisUser] = useState(JSON.parse(sessionStorage.getItem('user')));
-  const profilePictureCollection = useRef({});
-
   const [showChat, setShowChat] = useState(false);
-  const [activeChatTab, setActiveChatTab] = useState(null);
-  const [chatData = [{
-    chatPartnerId: String,
-    chatPartnerUsername: String,
-    messageData: [{
-      senderId: String,
-      senderUsername: String,
-      timestamp: Date,
-      text: String
-    }]
-  }], setChatData] = useState([]);
-
+  const [showUserList, setShowUserList] = useState(props.onMountOpen || false);
+  const [activeTabKey, setActiveTabKey] = useState('global');
+  const {
+    chatData = [{
+      chatPartnerId: String,
+      chatPartnerUsername: String,
+      messageData: [{
+        senderId: String,
+        senderUsername: String,
+        timestamp: Date,
+        text: String
+      }]
+    }],
+    profilePictureCollection,
+    setChatData,
+    setProfilePictureCollection,
+    activeChatData,
+    setActiveChatData
+  } = useContext(UserListContext);
 
   const [friendRequests, setFriendRequests] = useState([]);
   const [fetchRequestsSwitch, setFetchRequestsSwitch] = useState(false);
 
   const [friends, setFriends] = useState([]);
-  const [fetchFriendsSwitch, setFetchFriendsSwitch] = useState(false);
-
   const [remainingUsers, setRemainingUsers] = useState([]);
-  const [fetchUsersSwitch, setFetchUsersSwitch] = useState(false);
+  const [fetchUsersTrigger, setFetchUsersTrigger] = useState(false);
 
   const [friendSearch, setFriendSearch] = useState('');
   const [globalSearch, setGlobalSearch] = useState('');
@@ -54,7 +58,7 @@ export const UserList = () => {
   const {show} = useContextMenu();
   const displayMenu = (event, user, menuId) => {
     event.preventDefault();
-    if(thisUser.userType !== UserType.GUEST && user.userType !== UserType.GUEST) {
+    if (thisUser.userType !== UserType.GUEST && user.userType !== UserType.GUEST) {
       show(event, {
         id: menuId,
         props: {
@@ -75,24 +79,91 @@ export const UserList = () => {
 
 
   // did the user delete the sessionStorage for fun? redirect to login page
-  useEffect(() => {if(!thisUser) {history.push('/login')}}, []);
+  useEffect(() => {
+    if (!thisUser) {
+      history.push('/login')
+    }
+  }, []);
+
 
   useEffect(() => {
+
+    const fetchAndSetUsers = async () => {
+      const fetchedFriends = (await api.get(`/friends/${thisUser.id}`)).data;
+      const fetchedRemainingUsers = (await api.get(`/users/not_friends/${thisUser.id}`)).data;
+
+      const newProfilePictureCollection = {...profilePictureCollection};
+      let havePicturesChanged = false;
+
+      for(let u of [...fetchedFriends, ...fetchedRemainingUsers]) {
+        if(!profilePictureCollection[u.id]) {
+          havePicturesChanged = true;
+          if(u.userType === UserType.GUEST) {
+            newProfilePictureCollection[u.id] = guestIcon;
+          } else {
+            newProfilePictureCollection[u.id] = convertBase64DataToImageUrl((await api.get(`/files/${u.id}`)).data);
+          }
+        }
+      }
+
+      if(havePicturesChanged) { setProfilePictureCollection(newProfilePictureCollection); }
+      setFriends(fetchedFriends);
+      setRemainingUsers(fetchedRemainingUsers);
+    }
+
+    void fetchAndSetUsers();
+  }, [fetchUsersTrigger]);
+
+
+
+
+/*  useEffect(() => {
     const fetchAndSetFriends = async () => {
       const fetchedFriends = (await api.get(`/friends/${thisUser.id}`)).data;
-      for(let f of fetchedFriends) {
-        if(!profilePictureCollection.current[f.id]) {
-          profilePictureCollection.current[f.id] =
-              f.userType === UserType.GUEST ?
-                  guestIcon :
-                  convertBase64DataToImageUrl((await api.get(`/files/${f.id}`)).data);
+      const newProfilePictureCollection = {...profilePictureCollection};
+      let havePicturesChanged = false;
+      for (let f of fetchedFriends) {
+        if(!profilePictureCollection[f.id]) {
+          havePicturesChanged = true;
+          if(f.userType === UserType.GUEST) {
+            newProfilePictureCollection[f.id] = guestIcon;
+          } else {
+            newProfilePictureCollection[f.id] = convertBase64DataToImageUrl((await api.get(`/files/${f.id}`)).data);
+          }
         }
+      }
+      if(havePicturesChanged) {
+        setProfilePictureCollection(newProfilePictureCollection);
       }
       setFriends(fetchedFriends);
       return fetchedFriends;
     };
     fetchAndSetFriends().then(fetchedFriends => console.log('Fetched and set friends: ', {fetchedFriends}));
   }, [fetchFriendsSwitch]);
+
+  useEffect(() => {
+    const fetchAndSetRemainingUsers = async () => {
+      const fetchedUsers = (await api.get(`/users/not_friends/${thisUser.id}`)).data;
+      const newProfilePictureCollection = {...profilePictureCollection};
+      let havePicturesChanged = false;
+      for (let u of fetchedUsers) {
+        if(!profilePictureCollection[u.id]) {
+          havePicturesChanged = true;
+          if(u.userType === UserType.GUEST) {
+            newProfilePictureCollection[u.id] = guestIcon;
+          } else {
+            newProfilePictureCollection[u.id] = convertBase64DataToImageUrl((await api.get(`/files/${u.id}`)).data);
+          }
+        }
+      }
+      if(havePicturesChanged) {
+        setProfilePictureCollection(newProfilePictureCollection);
+      }
+      setRemainingUsers(fetchedUsers);
+      return fetchedUsers;
+    };
+    fetchAndSetRemainingUsers().then(fetchedUsers => console.log('Fetched and set remaining users: ', {fetchedUsers}));
+  }, [fetchUsersSwitch]);*/
 
   useEffect(() => {
     const fetchAndSetFriendRequests = async () => {
@@ -103,27 +174,12 @@ export const UserList = () => {
     fetchAndSetFriendRequests().then(setRequests => console.log('Fetched and set friend requests: ', {setRequests}));
   }, [fetchRequestsSwitch]);
 
-  useEffect(() => {
-    const fetchAndSetRemainingUsers = async () => {
-      const fetchedUsers = (await api.get(`/users/not_friends/${thisUser.id}`)).data;
-      for(let u of fetchedUsers) {
-        if(!profilePictureCollection[u.id]) {
-          profilePictureCollection.current[u.id] =
-              u.userType === UserType.GUEST ?
-                  guestIcon :
-                  convertBase64DataToImageUrl((await api.get(`/files/${u.id}`)).data);
-        }
-      }
-      setRemainingUsers(fetchedUsers);
-      return fetchedUsers;
-    };
-    fetchAndSetRemainingUsers().then(fetchedUsers => console.log('Fetched and set remaining users: ', {fetchedUsers}));
-  }, [fetchUsersSwitch]);
+
 
   // use the following useEffect to re-fetch friends and users every 10 sec
   useEffect(() => {
     const interval = setInterval(() => {
-      setFetchUsersSwitch(prev => !prev);
+      setFetchUsersTrigger(prev => !prev);
     }, 10000);
 
     // cleanup
@@ -132,20 +188,19 @@ export const UserList = () => {
 
 
   useSubscription(`/friend_requests/notify/${thisUser.id}`, msg => {
-    if(msg.body === 'new-request') {
+    if (msg.body === 'new-request') {
       setFetchRequestsSwitch(!fetchRequestsSwitch);
     }
-    if(msg.body === 'accept-request') {
-      setFetchFriendsSwitch(!fetchFriendsSwitch);
-      setFetchUsersSwitch(!fetchUsersSwitch);
+    if (msg.body === 'accept-request') {
+      setFetchUsersTrigger(prev => !prev);
       setFetchRequestsSwitch(!fetchRequestsSwitch);
     }
   });
 
   useSubscription(`/friends/notify_remove/${thisUser.id}`, msg => {
     const updatedFriends = friends.filter(f => f.id !== msg.body);
+    setFetchUsersTrigger(prev => !prev);
     setFriends(updatedFriends);
-    setFetchUsersSwitch(!fetchUsersSwitch);
   });
 
   useSubscription(`/messages/outgoing/${thisUser.id}`, async msg => {
@@ -156,7 +211,7 @@ export const UserList = () => {
     const chatDataObjIndex = chatData.findIndex(data => data.chatPartnerId === chatPartnerId);
     let chatDataObj = chatDataObjIndex !== -1 ? chatData[chatDataObjIndex] : undefined;
 
-    if(chatDataObj) {
+    if (chatDataObj) {
       const newChatData = [...chatData];
       newChatData.splice(
           chatDataObjIndex,
@@ -171,12 +226,10 @@ export const UserList = () => {
   });
 
 
-
   const acceptFriendRequest = async fromId => {
     await api.post(`/friend_requests/accept/${fromId}/${thisUser.id}`);
-    setFetchFriendsSwitch(!fetchFriendsSwitch);
+    setFetchUsersTrigger(prev => !prev);
     setFetchRequestsSwitch(!fetchRequestsSwitch);
-    setFetchUsersSwitch(!fetchUsersSwitch);
 
     stompClient.publish({
       destination: `/app/friend_requests/${fromId}`,
@@ -198,8 +251,8 @@ export const UserList = () => {
   const removeFriend = async friendId => {
     await api.delete(`/friends/${thisUser.id}/${friendId}`);
     const updatedFriends = friends.filter(f => f.id !== friendId);
+    setFetchUsersTrigger(prev => !prev);
     setFriends(updatedFriends);
-    setFetchUsersSwitch(!fetchUsersSwitch);
 
     stompClient.publish({
       destination: `/app/friends/notify_remove/${friendId}`,
@@ -208,11 +261,10 @@ export const UserList = () => {
   }
 
 
-
   // triggers chat with a friend when via contextmenu 'send message' is clicked
   const triggerChatWithUser = async chatPartner => {
     let activeTab = chatData.find(data => data.chatPartnerId === chatPartner.id);
-    if(!activeTab) {
+    if (!activeTab) {
       const chatDataObj = await fetchChatDataObjByChatPartnerId(chatPartner.id);
       setChatData([...chatData, chatDataObj]);
       activeTab = chatDataObj;
@@ -230,31 +282,30 @@ export const UserList = () => {
         chatPartnerUsername: chatPartnerUsername,
         messageData: data.length ? data.map(d => convertChatMessageDTOtoMessageDataObj(d)) : []
       };
-    } catch(error) {
+    } catch (error) {
       alert(`Something went wrong on the server side: ${error}`);
     }
   }
 
   // opens an already present but currently not active chat tab with a friend
   const openChatTab = chatDataObj => {
-    setActiveChatTab(chatDataObj);
+    setActiveChatData(chatDataObj);
   }
 
   // closes an already present chat tab and in case of closing the active tab no tab becomes active
   const removeChatDataObj = chatDataObj => {
     const activeIndex = chatData.findIndex(data => data.chatPartnerId === chatDataObj.chatPartnerId);
-    if(activeChatTab.chatPartnerId === chatDataObj.chatPartnerId) {
-      if(chatData.length > 1) {
-        setActiveChatTab(activeIndex === 0 ? chatData[1] : chatData[activeIndex - 1]);
+    if (activeChatData.chatPartnerId === chatDataObj.chatPartnerId) {
+      if (chatData.length > 1) {
+        setActiveChatData(activeIndex === 0 ? chatData[1] : chatData[activeIndex - 1]);
       } else {
-        setActiveChatTab(null);
+        setActiveChatData(null);
       }
     }
     const newChatData = [...chatData];
     newChatData.splice(activeIndex, 1);
     setChatData(newChatData);
   }
-
 
 
   const convertChatMessageDTOtoMessageDataObj = dto => {
@@ -269,7 +320,7 @@ export const UserList = () => {
     return dto?.senderId === thisUser.id ? dto?.environmentId : dto?.senderId;
   }
   const appendMessageToActiveChat = messageDataObj => {
-    const chatDataObjIndex = chatData.findIndex(data => data.chatPartnerId === activeChatTab.chatPartnerId);
+    const chatDataObjIndex = chatData.findIndex(data => data.chatPartnerId === activeChatData.chatPartnerId);
     const chatDataObj = chatData[chatDataObjIndex];
     const newChatData = [...chatData];
     newChatData.splice(
@@ -280,136 +331,150 @@ export const UserList = () => {
     setChatData(newChatData);
   };
 
+
   return (
-    <ListWrapper>
-      <UserChat
-          isOpen={showChat}
-          activeTab={activeChatTab}
-          allTabs={chatData}
-          closeTab={removeChatDataObj}
-          openTab={openChatTab}
-          appendMessage={appendMessageToActiveChat}
-          stompClient={stompClient}
-          user={thisUser}
-      />
-      <ListInner>
-        <Tab.Container defaultActiveKey={'global'}>
-          <ColStyled>
-            <RowStyled>
-              <NavStyled>
-                {thisUser && thisUser.userType !== 'GuestUser' ?
-                    <NavItemStyled>
-                      <Nav.Link eventKey={'friends'}>friends</Nav.Link>
-                    </NavItemStyled>
-                    : <></>}
-                <NavItemStyled>
-                  <Nav.Link eventKey={'global'}>global</Nav.Link>
-                </NavItemStyled>
-              </NavStyled>
-            </RowStyled>
-            <RowStyled flex={'1 1 auto'}>
-              <TabContentStyled>
-                <PaneStyled eventKey={'friends'}>
-                  <PaneContentWrapper>
-                    <SearchBarContainer>
-                      <IconicInput
-                          type={'text'}
-                          placeholder={'search friends...'}
-                          onChange={e => setFriendSearch(e.target.value)}
-                          defaultIcon={'search'}
-                          highlightIcon={'search'}
-                          defaultIconColor={'rgba(221, 221, 221, 0.5)'}
-                          highlightIconColor={'rgba(221, 221, 221, 0.9)'}
-                          style={inputStyle}
-                      />
-                    </SearchBarContainer>
-                    <ColumnWrapper>
-                      {friendRequests.map((req, index) =>
-                          <RequestItem
-                              key={index}
-                              username={req.fromUsername}
-                              accept={() => acceptFriendRequest(req.fromId)}
-                              decline={() => declineFriendRequest(req.fromId)}
-                          />
-                      )}
-                    </ColumnWrapper>
-                    <ColumnWrapper>
-                      {friends.filter(friend => {
-                        if(!friendSearch) { return true; }
-                        const regex = new RegExp(friendSearch, 'i');
-                        return !!friend.username.match(regex);
-                      }).map((friend, index) =>
-                          <div key={index} onContextMenu={e => displayMenu(e, friend, FRIEND_MENU_ID)}>
-                            <UserItem
-                              userId={friend.id}
-                              status={friend.status}
-                              username={friend.username}
-                              profilePicture={profilePictureCollection.current[friend.id]}
-                            />
-                          </div>
-                      )}
-                      <Portal>
-                        {/*
-                      we need to leverage a portal here to ensure correct positioning of the
-                      context menu inside the 'relative' positioned pane element
-                      */}
-                        <Menu id={FRIEND_MENU_ID} theme={theme.dark}>
-                          <Item onClick={e => triggerChatWithUser(e.props.user)}>💬 open chat</Item>
-                          <Item onClick={e => removeFriend(e.props.user.id)}>❌ remove from friends</Item>
-                        </Menu>
-                      </Portal>
-                    </ColumnWrapper>
-                  </PaneContentWrapper>
-                </PaneStyled>
-                <PaneStyled eventKey={'global'}>
-                  <PaneContentWrapper>
-                    <SearchBarContainer>
-                      <IconicInput
-                          type={'text'}
-                          placeholder={'search online users...'}
-                          onChange={e => setGlobalSearch(e.target.value)}
-                          defaultIcon={'search'}
-                          highlightIcon={'search'}
-                          defaultIconColor={'rgba(221, 221, 221, 0.5)'}
-                          highlightIconColor={'rgba(221, 221, 221, 0.9)'}
-                          style={inputStyle}
-                      />
-                    </SearchBarContainer>
-                    <ColumnWrapper>
-                      {remainingUsers.filter(user => {
-                        if(!globalSearch) { return true; }
-                        const regex = new RegExp(globalSearch, 'i');
-                        return !!user.username.match(regex);
-                      }).map((globalUser, index) =>
-                          <div key={index} onContextMenu={e => displayMenu(e, globalUser, USER_MENU_ID)}>
-                            <UserItem
-                              userId={globalUser.id}
-                              status={globalUser.status}
-                              username={globalUser.username}
-                              profilePicture={profilePictureCollection.current[globalUser.id]}/>
-                          </div>
-                      )}
-                      <Portal>
-                        {/*
-                      we need to leverage a portal here to ensure correct positioning of the
-                      context menu inside the 'relative' positioned pane element
-                      */}
-                        <Menu id={USER_MENU_ID} theme={theme.dark}>
-                          <Item onClick={e => sendFriendRequest(e.props.user.id)}>🕊️ send friend request</Item>
-                        </Menu>
-                      </Portal>
-                    </ColumnWrapper>
-                  </PaneContentWrapper>
-                </PaneStyled>
-                <MessageButton glow={showChat} onClick={() => setShowChat(!showChat)}>
-                  <i className={'material-icons'}>{showChat ? 'drafts' : 'mail'}</i>
-                </MessageButton>
-              </TabContentStyled>
-            </RowStyled>
-          </ColStyled>
-        </Tab.Container>
-      </ListInner>
-    </ListWrapper>
+      <>
+        {showUserList ?
+            <ListWrapper>
+              <UserChat
+                  isOpen={showChat}
+                  activeTab={activeChatData}
+                  allTabs={chatData}
+                  closeTab={removeChatDataObj}
+                  openTab={openChatTab}
+                  appendMessage={appendMessageToActiveChat}
+                  stompClient={stompClient}
+                  user={thisUser}
+              />
+              <ListInner>
+                <Tab.Container defaultActiveKey={activeTabKey} onSelect={eventKey => setActiveTabKey(eventKey)}>
+                  <ColStyled>
+                    <RowStyled>
+                      <NavStyled>
+                        {thisUser && thisUser.userType !== 'GuestUser' ?
+                            <NavItemStyled>
+                              <Nav.Link eventKey={'friends'}>friends</Nav.Link>
+                            </NavItemStyled>
+                            : <></>}
+                        <NavItemStyled>
+                          <Nav.Link eventKey={'global'}>global</Nav.Link>
+                        </NavItemStyled>
+                      </NavStyled>
+                    </RowStyled>
+                    <RowStyled flex={'1 1 auto'}>
+                      <TabContentStyled>
+                        <PaneStyled eventKey={'friends'}>
+                          <PaneContentWrapper>
+                            <SearchBarContainer>
+                              <IconicInput
+                                  type={'text'}
+                                  placeholder={'search friends...'}
+                                  onChange={e => setFriendSearch(e.target.value)}
+                                  defaultIcon={'search'}
+                                  highlightIcon={'search'}
+                                  defaultIconColor={'rgba(221, 221, 221, 0.5)'}
+                                  highlightIconColor={'rgba(221, 221, 221, 0.9)'}
+                                  style={inputStyle}
+                              />
+                            </SearchBarContainer>
+                            <ColumnWrapper>
+                              {friendRequests.map((req, index) =>
+                                  <RequestItem
+                                      key={index}
+                                      username={req.fromUsername}
+                                      accept={() => acceptFriendRequest(req.fromId)}
+                                      decline={() => declineFriendRequest(req.fromId)}
+                                  />
+                              )}
+                            </ColumnWrapper>
+                            <ColumnWrapper>
+                              {friends.filter(friend => {
+                                if (!friendSearch) {
+                                  return true;
+                                }
+                                const regex = new RegExp(friendSearch, 'i');
+                                return !!friend.username.match(regex);
+                              }).map((friend, index) =>
+                                  <div key={index} onContextMenu={e => displayMenu(e, friend, FRIEND_MENU_ID)}>
+                                    <UserItem
+                                        userId={friend.id}
+                                        status={friend.status}
+                                        username={friend.username}
+                                        profilePicture={profilePictureCollection[friend.id]}
+                                    />
+                                  </div>
+                              )}
+                              <Portal>
+                                {/*
+                                we need to leverage a portal here to ensure correct positioning of the
+                                context menu inside the 'relative' positioned pane element
+                                */}
+                                <Menu id={FRIEND_MENU_ID} theme={theme.dark}>
+                                  <Item onClick={e => triggerChatWithUser(e.props.user)}>💬 open chat</Item>
+                                  <Item onClick={e => removeFriend(e.props.user.id)}>❌ remove from friends</Item>
+                                </Menu>
+                              </Portal>
+                            </ColumnWrapper>
+                          </PaneContentWrapper>
+                        </PaneStyled>
+                        <PaneStyled eventKey={'global'}>
+                          <PaneContentWrapper>
+                            <SearchBarContainer>
+                              <IconicInput
+                                  type={'text'}
+                                  placeholder={'search online users...'}
+                                  onChange={e => setGlobalSearch(e.target.value)}
+                                  defaultIcon={'search'}
+                                  highlightIcon={'search'}
+                                  defaultIconColor={'rgba(221, 221, 221, 0.5)'}
+                                  highlightIconColor={'rgba(221, 221, 221, 0.9)'}
+                                  style={inputStyle}
+                              />
+                            </SearchBarContainer>
+                            <ColumnWrapper>
+                              {remainingUsers.filter(user => {
+                                if (!globalSearch) {
+                                  return true;
+                                }
+                                const regex = new RegExp(globalSearch, 'i');
+                                return !!user.username.match(regex);
+                              }).map((globalUser, index) =>
+                                  <div key={index} onContextMenu={e => displayMenu(e, globalUser, USER_MENU_ID)}>
+                                    <UserItem
+                                        userId={globalUser.id}
+                                        status={globalUser.status}
+                                        username={globalUser.username}
+                                        profilePicture={profilePictureCollection[globalUser.id]}/>
+                                  </div>
+                              )}
+                              <Portal>
+                                {/*
+                                we need to leverage a portal here to ensure correct positioning of the
+                                context menu inside the 'relative' positioned pane element
+                                */}
+                                <Menu id={USER_MENU_ID} theme={theme.dark}>
+                                  <Item onClick={e => sendFriendRequest(e.props.user.id)}>🕊️ send friend request</Item>
+                                </Menu>
+                              </Portal>
+                            </ColumnWrapper>
+                          </PaneContentWrapper>
+                        </PaneStyled>
+                        <MessageButton glow={showChat} onClick={() => setShowChat(!showChat)}>
+                          <i className={'material-icons'}>{showChat ? 'drafts' : 'mail'}</i>
+                        </MessageButton>
+                      </TabContentStyled>
+                    </RowStyled>
+                  </ColStyled>
+                </Tab.Container>
+              </ListInner>
+            </ListWrapper>
+        : <></>}
+        <UserListTriggerButtonWrapper>
+          <GlowButton onClick={() => setShowUserList(!showUserList)}>
+            {showUserList ? 'close user-list' : 'open user-list'}
+          </GlowButton>
+        </UserListTriggerButtonWrapper>
+      </>
   );
 }
 
@@ -435,10 +500,10 @@ const RequestItem = props => {
   return (
     <RequestItemWrapper>
       <div className={'button-box'}>
-        <IconButton className={'material-icons'} accept={true} onClick={() => props.accept()}>
+        <IconButton className={'material-icons'} accept={'true'} onClick={() => props.accept()}>
           check_circle
         </IconButton>
-        <IconButton className={'material-icons'} decline={true} onClick={() => props.decline()}>
+        <IconButton className={'material-icons'} decline={'true'} onClick={() => props.decline()}>
           cancel
         </IconButton>
       </div>
@@ -456,9 +521,9 @@ const UserItem = props => {
         circle
       </div>
       <div style={{width: "3.5rem", height: "3.5rem", marginRight: "5%"}}>
-        <img alt={guestIcon}
-             style={{borderRadius: "50%", maxWidth: "100%", maxHeight: "100%", width: "100%", height: "auto"}}
+        <img style={{borderRadius: "50%", maxWidth: "100%", maxHeight: "100%", width: "100%", height: "auto"}}
              src={props.profilePicture}
+             alt={guestIcon}
         />
       </div>
       <div className={'username-box'}>
@@ -509,7 +574,7 @@ const IconButton = styled.button`
   align-items: center;
   justify-content: center;
   font-size: 2rem;
-  color: ${props => props.accept ? '#02560A' : props.decline ? '#5E0712' : 'black'};
+  color: ${props => props?.accept ? '#02560A' : props?.decline ? '#5E0712' : 'black'};
 `;
 
 const RequestItemWrapper = styled.div`
@@ -651,15 +716,11 @@ const ListInner = styled.div`
 `;
 
 const ListWrapper = styled.div`
-  grid-column: 2;
-  grid-row: 2;
-
-  position: relative;
-  aspect-ratio: 2/3;
-  height: 90%;
-  align-self: center;
-  justify-self: end;
-  margin-right: 5%;
+  position: fixed;
+  aspect-ratio: 2 / 3;
+  height: 80vh;
+  bottom: 3.5rem;
+  right: 1rem;
   display: block;
   z-index: 40;
 
@@ -668,5 +729,11 @@ const ListWrapper = styled.div`
   -moz-user-select: none; /* Old versions of Firefox */
   -ms-user-select: none; /* Internet Explorer/Edge */
   user-select: none; /* Non-prefixed version, currently supported by Chrome, Edge, Opera and Firefox */
+`
+
+const UserListTriggerButtonWrapper = styled.div`
+  position: fixed;
+  bottom: 0.5rem;
+  right: 1rem;
 `;
 

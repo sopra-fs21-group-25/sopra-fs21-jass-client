@@ -8,6 +8,7 @@ import LobbyListItem from "./joinPageAssets/LobbyListItem";
 import './css/joinPage.css';
 import {Spinner} from "../../views/design/Spinner";
 import {useStompClient} from "react-stomp-hooks";
+import {UserList} from "./applicationAssets/UserList";
 
 const OuterWrapper = styled('div')({
   display: 'block',
@@ -208,6 +209,7 @@ const JoinPage = () => {
             </Col>
           </Tab.Container>
         </OuterWrapper>
+        <UserList onMountOpen={false}/>
       </BackgroundContainer>
   );
 }

@@ -7,6 +7,7 @@ import SchieberCreator from "./creationPageAssets/SchieberCreator";
 import CoiffeurCreator from "./creationPageAssets/CoiffeurCreator";
 import BieterCreator from "./creationPageAssets/BieterCreator";
 import SidiCreator from "./creationPageAssets/SidiCreator";
+import {UserList} from "./applicationAssets/UserList";
 
 
 
@@ -63,6 +64,7 @@ class CreationPage extends React.Component {
             </Tab>
           </Tabs>
         </Container>
+        <UserList onMountOpen={false}/>
       </BackgroundContainer>
     );
   }

@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import styled from 'styled-components';
 import { api, handleError } from '../../helpers/api';
 import {useHistory, withRouter} from 'react-router-dom';
@@ -13,6 +13,7 @@ import {UserList} from "./applicationAssets/UserList";
 const Menu = () => {
   const [user] = useState(JSON.parse(sessionStorage.getItem('user')));
   const history = useHistory();
+
 
   /* add beforeunload event listener.
   What I actually wanted to achieve was for a user to get logged
@@ -149,7 +150,7 @@ const Menu = () => {
             flavum, mirabilis mineraliss velox locus de audax, dexter ausus.
           </RuleItem>
         </RuleFramer>
-        <UserList/>
+        <UserList onMountOpen={true}/>
       </MenuGrid>
   );
 }

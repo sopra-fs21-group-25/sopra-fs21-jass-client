@@ -47,6 +47,7 @@ export const LobbySearchbar = props => {
                   key={user.id}
                   user={user}
                   lobbyId={props.lobbyId}
+                  lobbyCreator={props.lobbyCreator}
                   client={stompClient}
                   clearList={handleChange}
               />
@@ -56,6 +57,35 @@ export const LobbySearchbar = props => {
   );
 
 }
+const LobbySearchListItem = props => {
+  const stompClient = props.client;
+
+
+  const inviteUser = () => {
+    console.log({props})
+    stompClient.publish({
+      destination: `/app/lobbies/invite/${props.user.id}`,
+      body: JSON.stringify({
+        lobbyId: props.lobbyId,
+        lobbyCreator: props.lobbyCreator
+      })
+    });
+
+    props.clearList('');
+  }
+
+  return (
+      <ListItemWrapper>
+        <LeftItemComponentContainer>
+          {props.user.username}
+        </LeftItemComponentContainer>
+        <RightItemComponentContainer>
+          <InviteButton onClick={() => inviteUser()}>Invite</InviteButton>
+        </RightItemComponentContainer>
+      </ListItemWrapper>
+  );
+}
+
 export const LobbyJassTable = props => {
   const user = JSON.parse(sessionStorage.getItem('user'));
 
@@ -148,6 +178,7 @@ export const LobbyJassTable = props => {
       </GridContainer>
   );
 }
+
 export const LobbyPlayerList = props => {
   const stompClient = props.client;
   const lobbyId = props.lobbyId;
@@ -172,6 +203,30 @@ export const LobbyPlayerList = props => {
       </div>
   );
 }
+const LobbyPlayerListItem = props => {
+
+  const removeUser = () => {
+    props.client.publish({
+      destination: `/app/lobbies/${props.lobbyId}/kicked/${props.user.id}`,
+      data: null
+    })
+  };
+
+  return (
+      <li>
+        <ItemContainer>
+          <LeftItemComponentContainer>
+            {props.user.username}
+          </LeftItemComponentContainer>
+          <RightItemComponentContainer>
+            {props.removable ? (
+                <RemoveButton onClick={() => removeUser()}>X</RemoveButton>
+            ) : <></>}
+          </RightItemComponentContainer>
+        </ItemContainer>
+      </li>
+  );
+};
 
 export const LobbyWrapper = styled.div`
   display: grid;
@@ -296,57 +351,6 @@ export const BackButton = styled.button`
   background: #7F8385;
   transition: all 0.3s ease;
 `;
-
-
-
-const LobbyPlayerListItem = props => {
-
-  const removeUser = () => {
-    props.client.publish({
-      destination: `/app/lobbies/${props.lobbyId}/kicked/${props.user.id}`,
-      data: null
-    })
-  };
-
-  return (
-      <li>
-        <ItemContainer>
-          <LeftItemComponentContainer>
-            {props.user.username}
-          </LeftItemComponentContainer>
-          <RightItemComponentContainer>
-            {props.removable ? (
-                <RemoveButton onClick={() => removeUser()}>X</RemoveButton>
-            ) : <></>}
-          </RightItemComponentContainer>
-        </ItemContainer>
-      </li>
-  );
-};
-const LobbySearchListItem = props => {
-  const stompClient = props.client;
-
-
-  const inviteUser = () => {
-    stompClient.publish({
-      destination: `/app/lobbies/invite/${props.user.id}`,
-      body: `${props.lobbyId}`
-    });
-
-    props.clearList('');
-  }
-
-  return (
-      <ListItemWrapper>
-        <LeftItemComponentContainer>
-          {props.user.username}
-        </LeftItemComponentContainer>
-        <RightItemComponentContainer>
-          <InviteButton onClick={() => inviteUser()}>Invite</InviteButton>
-        </RightItemComponentContainer>
-      </ListItemWrapper>
-  );
-}
 
 const StyledInput = styled.input`
   &::placeholder {

@@ -1,6 +1,5 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useMemo, useRef} from 'react';
 import styled from 'styled-components';
-import flyingCards from '../images/interfaceImages/flying-cards.jpg';
 import plankSharp from '../images/interfaceImages/wooden-plank-BW-sharp.jpg';
 import texture from '../images/interfaceImages/texture.jpg';
 
@@ -89,28 +88,6 @@ export const IconicInput = props => {
   );
 }
 
-export const FloatingContainer = styled.div`
-  position: absolute;
-  bottom: 5vh;
-  left: 0;
-  right: 0;
-  margin-left: auto;
-  margin-right: auto;
-  z-index: -4;
-  animation: 8s infinite alternate floating;
-  
-  @keyframes floating {
-    0% {
-      transform: translateY(0px);
-    }
-    50% {
-      transform: translateY(-0.4rem);
-    }
-    100% {
-      transform: translateY(0px);
-    }
-  }
-`;
 
 export const MenuGrid = styled.div`
   display: grid;
@@ -127,64 +104,33 @@ export const MenuGrid = styled.div`
   z-index: -5;
 `;
 
-export const MorphingBanner = styled.div`
-  position: absolute;
-  display: block;
-  z-index: -4;
-  top: 5%;
-  left: 40%;
-  height: 100vh;
-  width: 35vw;
-  background: url(${flyingCards}) no-repeat center/cover;
-  opacity: 0.85;
-  animation: 12s linear 0s infinite normal patient-motion;
-  
-  @keyframes patient-motion {
-    0% {
-      transform: translate3d(0, 0, 0,);
-    }
-    20% {
-      transform: translate3d(-0.5%, -1%, 0);
-    }
-    40% {
-      transform: translate3d(-0.3%, 0, 0);
-    }
-    60% {
-      transform: translate3d(0%, 1%, 0);
-    }
-    80% {
-      transform: translate3d(0.3%, 0.5%, 0);
-    }
-    100% {
-      transform: translate3d(0, 0, 0);
-    }
-  }
-`;
 
 export const MenuHeader = props => {
 
-  return (
-    <MainDiv>
-      <SideButtonWrapper pos={'left'}>
-        <GlowButton onClick={() => props.onClickProfile()}>
-          {props.user?.username}'s profile
-        </GlowButton>
-      </SideButtonWrapper>
-      <GameButtonWrapper>
-        <GlowButton style={{height: '3rem', width: '15rem', fontSize: '1.5rem'}} onClick={() => props.onClickCreate()}>
-          create game
-        </GlowButton>
-        <GlowButton style={{height: '3rem', width: '15rem', fontSize: '1.5rem'}} onClick={() => props.onClickJoin()}>
-          join game
-        </GlowButton>
-      </GameButtonWrapper>
-      <SideButtonWrapper pos={'right'}>
-        <GlowButton onClick={() => props.onClickLogout()}>
-          logout
-        </GlowButton>
-      </SideButtonWrapper>
-    </MainDiv>
-  );
+  return useMemo(() => {
+    return (
+        <MainDiv>
+          <SideButtonWrapper pos={'left'}>
+            <GlowButton onClick={() => props.onClickProfile()}>
+              {props.user?.username}'s profile
+            </GlowButton>
+          </SideButtonWrapper>
+          <GameButtonWrapper>
+            <GlowButton style={{height: '3rem', width: '15rem', fontSize: '1.5rem'}} onClick={() => props.onClickCreate()}>
+              create game
+            </GlowButton>
+            <GlowButton style={{height: '3rem', width: '15rem', fontSize: '1.5rem'}} onClick={() => props.onClickJoin()}>
+              join game
+            </GlowButton>
+          </GameButtonWrapper>
+          <SideButtonWrapper pos={'right'}>
+            <GlowButton onClick={() => props.onClickLogout()}>
+              logout
+            </GlowButton>
+          </SideButtonWrapper>
+        </MainDiv>
+    );
+  }, [props]);
 }
 
 

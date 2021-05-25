@@ -1,6 +1,6 @@
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useMemo} from 'react';
 import {useSwipeScroll, useOutsideClickHandler} from "../../../helpers/customHooks";
-import {MainContainer, ChatContainer, MessageList, Message, MessageInput} from "@chatscope/chat-ui-kit-react";
+import {MainContainer, ChatContainer, MessageList, Message, MessageInput, MessageSeparator} from "@chatscope/chat-ui-kit-react";
 import Picker from 'emoji-picker-react';
 import '../css/userChat.scss';
 
@@ -17,7 +17,7 @@ export const UserChat = props => {
 
   const handleSend = () => {
     console.log({chatInput});
-    if(props.activeTab) {
+    if (props.activeTab) {
       const chatMessageDTO = {
         senderId: props.user.id,
         senderUsername: props.user.username,
@@ -46,7 +46,7 @@ export const UserChat = props => {
   const deriveMessageModel = ({senderId, senderUsername, timestamp, text}) => {
     return {
       message: text,
-      sentTime: timestamp.toLocaleDateString(),
+      sentTime: timestamp.toLocaleTimeString('de-CH', {timeStyle: 'short'}),
       sender: senderUsername,
       direction: senderId === props.user.id ? 'outgoing' : 'incoming',
       position: 'single',
@@ -54,69 +54,93 @@ export const UserChat = props => {
     };
   };
 
-
-  return (
-      <>
-        {props.isOpen ?
-            <div className={'wrapper-root'}>
-              <Header>
-                <div className={'header-sub-root-tabs-wrapper'}>
-                  {props.allTabs.map((chatDataObj, index) =>
-                      <Tab
-                          key={index}
-                          isActive={props.activeTab?.chatPartnerId === chatDataObj.chatPartnerId}
-                          openTab={() => props.openTab(chatDataObj)}
-                          closeTab={() => props.closeTab(chatDataObj)}
+  return useMemo(() => {
+    return (
+        <>
+          {props.isOpen ?
+              <div className={'wrapper-root'}>
+                <Header>
+                  <div className={'header-sub-root-tabs-wrapper'}>
+                    {props.allTabs.map((chatDataObj, index) =>
+                        <Tab
+                            key={index}
+                            isActive={props.activeTab?.chatPartnerId === chatDataObj.chatPartnerId}
+                            openTab={() => props.openTab(chatDataObj)}
+                            closeTab={() => props.closeTab(chatDataObj)}
+                        >
+                          {chatDataObj.chatPartnerUsername}
+                        </Tab>
+                    )}
+                  </div>
+                  <div className={'header-sub-root-bottom-line'}/>
+                </Header>
+                <div className={'body-sub-root'}>
+                  <MainContainer className={'chat-container-custom-layout'}>
+                    <ChatContainer className={'chat-container-custom-layout'}>
+                      <MessageList
+                          className={'chat-container-custom-layout'}
+                          autoScrollToBottom={true}
+                          autoScrollToBottomOnMount={true}
                       >
-                        {chatDataObj.chatPartnerUsername}
-                      </Tab>
-                  )}
-                </div>
-                <div className={'header-sub-root-bottom-line'}/>
-              </Header>
-              <div className={'body-sub-root'}>
-                <MainContainer className={'chat-container-custom-layout'}>
-                  <ChatContainer className={'chat-container-custom-layout'}>
-                    <MessageList className={'chat-container-custom-layout'}>
-                      {props.activeTab && props.allTabs &&
-                      props.allTabs.find(t => t.chatPartnerId === props.activeTab.chatPartnerId)
-                          .messageData.map((m, index) => {
-                            const messageModel = deriveMessageModel(m);
-                            return (
-                                <Message model={messageModel} key={index}>
-                                  <Message.Footer sentTime={messageModel.sentTime}/>
-                                </Message>);
-                      })}
-                    </MessageList>
-                    <div as={MessageInput} className={'custom-cs-input-wrapper'}>
-                      <MessageInput
-                          placeholder={'type a message...'}
-                          sendDisabled={false}
-                          attachDisabled={true}
-                          value={chatInput}
-                          onChange={e => {
-                            setChatInput((new DOMParser()).parseFromString(e, 'text/html').documentElement.textContent);
-                          }}
-                          onSend={() => handleSend()}
-                      />
-                      <button className={'emoji-button-wrapper'} onClick={() => setHidePicker(prev => !prev)}>
-                        <i className={'material-icons'}>emoji_emotions</i>
-                      </button>
-                      <div hidden={hidePicker} className={'picker-wrapper'} ref={pickerRef}>
-                        <Picker
-                            onEmojiClick={(e, data) => handleEmojiPick(data.emoji)}
-                            className={'picker-layout'}
-                            pickerStyle={{boxShadow: 'none', width: '100%'}}
+                        {props.activeTab && props.allTabs &&
+                        props.allTabs.find(t => t.chatPartnerId === props.activeTab.chatPartnerId)
+                            .messageData.map((m, index, array) => {
+                          let messageModel = deriveMessageModel(m);
+                          if (index > 0) {
+                            let currDate = (new Date(m.timestamp)).setHours(0, 0, 0, 0);
+                            let prevDate = (new Date(array[index - 1].timestamp)).setHours(0, 0, 0, 0);
+                            if (prevDate < currDate) {
+                              const options = {
+                                day: 'numeric',
+                                weekday: 'short',
+                                month: 'short',
+                                year: 'numeric'
+                              }
+                              return (
+                                  <>
+                                    <MessageSeparator content={currDate.toLocaleDateString('de-CH', options)}/>
+                                    <Message model={messageModel} key={index}>
+                                      <Message.Footer sentTime={messageModel.sentTime}/>
+                                    </Message>
+                                  </>)
+                            }
+                          }
+                          return (
+                              <Message model={messageModel} key={index}>
+                                <Message.Footer sentTime={messageModel.sentTime}/>
+                              </Message>);
+                        })}
+                      </MessageList>
+                      <div as={MessageInput} className={'custom-cs-input-wrapper'}>
+                        <MessageInput
+                            placeholder={'type a message...'}
+                            sendDisabled={false}
+                            attachDisabled={true}
+                            value={chatInput}
+                            onChange={e => {
+                              setChatInput((new DOMParser()).parseFromString(e, 'text/html').documentElement.textContent);
+                            }}
+                            onSend={() => handleSend()}
                         />
+                        <button className={'emoji-button-wrapper'} onClick={() => setHidePicker(prev => !prev)}>
+                          <i className={'material-icons'}>emoji_emotions</i>
+                        </button>
+                        <div hidden={hidePicker} className={'picker-wrapper'} ref={pickerRef}>
+                          <Picker
+                              onEmojiClick={(e, data) => handleEmojiPick(data.emoji)}
+                              className={'picker-layout'}
+                              pickerStyle={{boxShadow: 'none', width: '100%'}}
+                          />
+                        </div>
                       </div>
-                    </div>
-                  </ChatContainer>
-                </MainContainer>
+                    </ChatContainer>
+                  </MainContainer>
+                </div>
               </div>
-            </div>
-            : <></>}
-      </>
-  );
+              : <></>}
+        </>
+    );
+  }, [props.isOpen, props.activeTab, props.allTabs, chatInput, hidePicker]);
 }
 
 

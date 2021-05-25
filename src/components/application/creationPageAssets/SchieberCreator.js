@@ -11,7 +11,7 @@ import obenabe from "../../../views/images/icons/obenabe.png";
 import slalom from "../../../views/images/icons/slalom.png";
 import gusti from "../../../views/images/icons/gusti.png";
 import mary from "../../../views/images/icons/mary.png";
-import {Redirect, withRouter} from "react-router-dom";
+import {withRouter} from "react-router-dom";
 import {api} from "../../../helpers/api";
 import {UserType} from "../../shared/models/UserType";
 

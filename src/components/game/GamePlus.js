@@ -25,6 +25,8 @@ import mary from "../../views/images/icons/mary.png";
 import questionmark from "../../views/images/icons/questionmark.png";
 import InitDistributionPlus from "../cards/InitDistributionPlus";
 import {Spinner} from "../../views/design/Spinner";
+import {DialogContent} from "@material-ui/core";
+import {UserList} from "../application/applicationAssets/UserList";
 
 
 const CurrentModeContainer = styled(BaseContainer)`
@@ -78,6 +80,8 @@ const GamePlus = props => {
   const [endGameText, setEndGameText] = useState("");
 
   const [{canShove, gotShoved}, setShovingState] = useState({canShove: false, gotShoved: false});
+
+  const [slalomTrigger, setSlalomTrigger] = useState(false);
   
   const history = useHistory();
   /* Game state
@@ -154,7 +158,11 @@ const GamePlus = props => {
       });
       setShovingState({canShove: false, gotShoved: false});
     } else {
-      await updateGameState(null, ingameMode);
+      if(ingameMode.ingameMode === 'SLALOM') {
+        setSlalomTrigger(true);
+      } else {
+        await updateGameState(null, ingameMode);
+      }
     }
     setStartOfRound(false);
   }
@@ -180,17 +188,27 @@ const GamePlus = props => {
     }
   }
   // triggers update of game state in backend and notifies all players to re-fetch and patch their game state
-  const updateGameState = async (playedCard, ingameMode) => {
+  const updateGameState = async (playedCard, ingameMode, startRoundHighOrLow) => {
 
     let payload;
     console.log({ingameMode});
     if(!playedCard && ingameMode) {
       // case if ingameMode has been chosen but obviously no card played yet
 
-      payload = JSON.stringify({
-        ingameMode: ingameMode.ingameMode,
-        userId: myId
-      });
+      // startRoundHighOrLow is set iff Slalom has been chosen and Obe or Unde has been chosen
+      if(startRoundHighOrLow) {
+        payload = JSON.stringify({
+          ingameMode: ingameMode.ingameMode,
+          userId: myId,
+          lowOrHigh: startRoundHighOrLow
+        });
+      } else {
+        payload = JSON.stringify({
+          ingameMode: ingameMode.ingameMode,
+          userId: myId
+        });
+      }
+
 
     } else if(playedCard && !ingameMode) {
       // case if a card has been played but no ingameMode chosen, only a card played
@@ -216,7 +234,7 @@ const GamePlus = props => {
     // after updating the game state backend-internally, notify everyone to re-fetch the updated state
     stompClient.publish({
       destination: `/app/games/${gameId}/fetch`,
-      body: null
+      body: ''
     });
   }
 
@@ -255,7 +273,7 @@ const GamePlus = props => {
       } else {
         setStartOfRound(true);
         setShowScoreDialog(true);
-        if(newState['idOfRoundStartingPlayer'] === myId && cardsPlayed.every(card => card == null)) {
+        if(newState['idOfRoundStartingPlayer'] === myId && newState['cardsPlayed'].every(card => card == null)) {
           setShovingState({canShove: true, gotShoved: false});
         }
       }
@@ -319,7 +337,11 @@ const GamePlus = props => {
         setShovingState({canShove: false, gotShoved: true});
       } else {
         setShovingState({canShove: false, gotShoved: false});
-        await updateGameState(null, {ingameMode: data});
+        if(data === 'SLALOM') {
+          setSlalomTrigger(true);
+        } else {
+          await updateGameState(null, {ingameMode: data});
+        }
       }
     })(JSON.parse(msg.body));
   });
@@ -343,7 +365,7 @@ const GamePlus = props => {
             <Button onClick={handleEndDialogClose} color="primary">
               Back to main menu
             </Button>
-        </DialogActions>
+          </DialogActions>
         </Dialog>
         <Dialog open={showScoreDialog && startOfRound}>
           <DialogTitle>{"Team points"}</DialogTitle>
@@ -359,10 +381,10 @@ const GamePlus = props => {
             <Button onClick={handleScoreDialogClose} color="primary">
               Continue
             </Button>
-        </DialogActions>
+          </DialogActions>
         </Dialog>
         <Dialog open={(!showScoreDialog && startOfRound && idOfRoundStartingPlayer === myId && cardsPlayed.every(card => card == null)) || gotShoved}>
-          <DialogTitle>{"Please choose in-game mode"}</DialogTitle>
+          <DialogTitle>{gotShoved ? 'Your partner has shoved! Please choose in-game mode' : 'Please choose in-game mode'}</DialogTitle>
           <List>
             {ingameModes ?
                 <>
@@ -374,7 +396,7 @@ const GamePlus = props => {
                   ))}
                   {canShove ?
                     <ListItem button onClick={() => handleDoShove()}>
-                      <ListItemText>Shove</ListItemText>
+                      <ListItemText primary={'Shove'}/>
                     </ListItem>
                   :<></>}
                 </>
@@ -382,8 +404,24 @@ const GamePlus = props => {
           </List>
         </Dialog>
         <Dialog open={canShove && !startOfRound}>
-          <DialogTitle style={{fontFamily: 'Satisfy', fontWeight: 600, fontSize: '1.6rem'}}>Waiting for your partner</DialogTitle>
-          <Spinner/>
+          <DialogTitle>Waiting for your partner</DialogTitle>
+        </Dialog>
+        <Dialog open={slalomTrigger}>
+         <DialogTitle>Start Slalom Obe (high to low) or Unde (low to high)?</DialogTitle>
+         <List>
+           <ListItem button onClick={() => {
+             void updateGameState(null, {ingameMode: 'SLALOM'}, 'OBE');
+             setSlalomTrigger(false);
+           }}>
+             <ListItemText primary={'Obe (high to low)'}/>
+           </ListItem>
+           <ListItem button onClick={() => {
+             void updateGameState(null, {ingameMode: 'SLALOM'}, 'UNDE');
+             setSlalomTrigger(false);
+           }}>
+             <ListItemText primary={'Unde (low to high'}/>
+           </ListItem>
+         </List>
         </Dialog>
         <CurrentModeContainer>
           <Label style={{backgroundColor: "white", textAlign: "center"}}>
@@ -407,8 +445,10 @@ const GamePlus = props => {
                 playerStartsTrick={playerStartsTrick}
                 updateGameState={(c, m) => updateGameState(c, m)}
                 myIndex={myIndex}
+                trickToPlay={trickToPlay}
             />
             : <></>}
+        <UserList onMountOpen={false}/>
       </BackgroundContainer>
   );
 }

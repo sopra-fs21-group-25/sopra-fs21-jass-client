@@ -5,11 +5,15 @@ import styled from "styled-components";
 import {useHistory} from "react-router-dom";
 import {api} from "../../../helpers/api";
 import {Button} from "../../../views/design/Button";
+import {GlowButton} from "../../../views/design/ElegantAssets";
 
 
 export const InvitationInjector = props => {
   const [showPopup, setShowPopup] = useState(false);
-  const [lobbyToJoinId, setLobbyToJoinId] = useState('');
+  const [lobbyToJoin = {
+    lobbyId: String,
+    lobbyCreator: String
+  }, setLobbyToJoin] = useState(null);
   const stompClient = useStompClient();
 
   const togglePopup = () => {
@@ -17,25 +21,26 @@ export const InvitationInjector = props => {
   }
 
   const resetLobbyToJoinId = () => {
-    setLobbyToJoinId('');
+    setLobbyToJoin(null);
   }
 
   useSubscription(`/lobbies/invite/${props.userId}`, msg => {
-    setLobbyToJoinId(msg.body);
+    const lobbyData = JSON.parse(msg.body);
+    setLobbyToJoin(lobbyData);
   });
 
   useEffect(() => {
-    if(lobbyToJoinId) {
+    if(lobbyToJoin) {
       togglePopup();
     }
-  }, [lobbyToJoinId]);
+  }, [lobbyToJoin]);
 
   return (
       <div>
         {showPopup ? (
             <InvitationPopup
                 userId={props.userId}
-                lobbyId={lobbyToJoinId}
+                lobby={lobbyToJoin}
                 client={stompClient}
                 closePopup={() => {
                   togglePopup();
@@ -49,16 +54,13 @@ export const InvitationInjector = props => {
 
 
 const InvitationPopup = props => {
-  const myId = props.userId;
-  const lobbyId = props.lobbyId;
   const history = useHistory();
 
-  console.log({myId, lobbyId})
 
   const join = async () => {
     try {
-      const userIdRequest = JSON.stringify({userId: myId, remove: false, add: true})
-      const response = await api.put(`/lobbies/${lobbyId}`, userIdRequest);
+      const userIdRequest = JSON.stringify({userId: props.userId, remove: false, add: true})
+      const response = await api.put(`/lobbies/${props.lobby.lobbyId}`, userIdRequest);
       const lobby = response.data;
 
       props.client.publish({
@@ -67,7 +69,7 @@ const InvitationPopup = props => {
       });
 
       history.push({
-        pathname: `/lobby/${lobbyId}`,
+        pathname: `/lobby/${lobby.id}`,
         state: lobby
       });
     } catch(error) {
@@ -79,12 +81,34 @@ const InvitationPopup = props => {
     props.closePopup();
   }
 
+  const buttonWrapperStyle = {
+    maxHeight: '20%',
+    maxWidth: '100%',
+    flex: '1 0 auto',
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    alignItems: 'center',
+    padding: '1% 3%'
+  }
+
+  const textWrapperStyle = {
+    textAlign: 'center',
+    fontFamily: 'Satisfy, cursive',
+    fontWeight: 600,
+  }
+
 
   return (
       <PopupView>
         <PopupInner>
-          <Button onClick={() => join()}>Join</Button>
-          <Button onClick={() => decline()}>Decline</Button>
+          <div style={textWrapperStyle}>
+            <h1>You have been invited to join {props.lobby.lobbyCreator}'s Jass table!</h1>
+          </div>
+          <div style={buttonWrapperStyle}>
+            <GlowButton onClick={() => join()}>join</GlowButton>
+            <GlowButton onClick={() => decline()}>decline</GlowButton>
+          </div>
         </PopupInner>
       </PopupView>
   );
@@ -110,5 +134,10 @@ const PopupInner = styled('div')({
   right: '25%',
   bottom: '25%',
   margin: 'auto',
-  background: 'white'
+  background: 'linear-gradient(21deg, rgba(55,55,55,0.8603816526610644) 0%, rgba(107,163,170,0.8323704481792717) 48%, rgba(135,205,214,0.8547794117647058) 100%)',
+  borderRadius: '10px',
+  border: '10px groove rgba(221,221,221,0.8)',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'center'
 });

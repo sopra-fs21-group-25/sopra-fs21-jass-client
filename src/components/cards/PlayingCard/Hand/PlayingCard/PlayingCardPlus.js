@@ -28,7 +28,7 @@ const PlayingCardPlus = props => {
   }
 
   const onDragStop = e => {
-    if(overlaps(e.target.getBoundingClientRect(), props.playArea)) {
+    if(overlaps(e.target.getBoundingClientRect(), props.playArea.getBoundingClientRect())) {
       console.log("Overlap!");
       props.handlePlacingCard(props.card);
     } else {

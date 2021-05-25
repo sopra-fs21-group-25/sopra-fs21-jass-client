@@ -16,6 +16,7 @@ import {
   LobbyPlayerList,
   LobbySearchbar
 } from "./lobbyAssets/LobbyAssets";
+import {UserList} from "./applicationAssets/UserList";
 
 
 const LobbyPage = () => {
@@ -231,6 +232,7 @@ const LobbyPage = () => {
                 users={allUsers}
                 client={stompClient}
                 lobbyId={thisLobby.id}
+                lobbyCreator={thisLobby.creatorUsername}
               />
           ) : <></> }
           <PlayerWrapper>
@@ -260,6 +262,7 @@ const LobbyPage = () => {
               </StartButton>
           ) : <></> }
         </LobbyWrapper>
+        <UserList onMountOpen={false}/>
       </BackgroundContainer>
   );
 }

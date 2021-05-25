@@ -7,6 +7,7 @@ import { Button } from '../../views/design/Button';
 import {withRouter} from 'react-router-dom';
 import '../application/css/menu.css';
 import {convertBase64DataToImageUrl} from "../../helpers/convertBase64DataToImage";
+import {UserList} from "../application/applicationAssets/UserList";
 
 
 
@@ -288,6 +289,7 @@ render() {
                         </Button>
                     </BackButtonWrapper>
                 </ProfileContainer>
+                <UserList onMountOpen={false}/>
             </BackgroundContainer>
         );
     }

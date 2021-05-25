@@ -214,7 +214,7 @@ const InitDistributionPlus = props => {
               <HandPlus
                   disabled={!myTurn}
                   layout={"spread"}
-                  playArea={playArea.current}
+                  playArea={refPlayArea.current}
                   handlePlacingCard={c => handlePlacingCard(c)}
                   cards={cardsInHands.playerA}
                   cardsPlayed={cardsOnTable}
@@ -242,9 +242,9 @@ const InitDistributionPlus = props => {
         <div className="actionContainer">
           <div className="actionChildContainer" ref={refPlayArea}>
             <div className="nextTrickButton">
-              {props.playerStartsTrick[myIndex] && !props.cardsPlayed.includes(null)
-                  ? <Button onClick={() => triggerNextTrick()}>
-                    Next trick
+              {props.playerStartsTrick[myIndex] && !props.cardsPlayed.includes(null) ?
+                  <Button onClick={() => triggerNextTrick()}>
+                    {props.trickToPlay === 0 ? 'Next Round' : 'Next Trick'}
                   </Button>
                   : <></>
               }
