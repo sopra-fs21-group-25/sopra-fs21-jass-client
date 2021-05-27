@@ -118,8 +118,12 @@ class Login extends React.Component {
   async loginGoogleUser(user_obj) {
     try {
       console.log(user_obj);
+      
+      const res = await api.get(`/users/email/${user_obj.profileObj.email}`);
+      const current_user = new User(res.data);
+
       const requestBody = JSON.stringify({
-        username: user_obj.profileObj.email.split('@')[0],
+        username: current_user.username,
         password: user_obj.profileObj.googleId
       });
 
@@ -139,6 +143,7 @@ class Login extends React.Component {
         const requestBody = JSON.stringify({
           username: user_obj.profileObj.email.split('@')[0],
           password: user_obj.profileObj.googleId,
+          email: user_obj.profileObj.email,
           userType: UserType.REGISTERED
         });
 
