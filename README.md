@@ -1,58 +1,84 @@
-# SoPra FS21 - Client Template
+# Group 25 - Jass Game
 
-## Getting started with React
+## Introduction
+The goal of this project is to build an application which allows multiple users to play the popular Swiss card game “Jass”. These include registering/logging in as a player, adding friends, creating or joining games, playing different modes of Jass on global or private tables and using the chat functionality to communicate with friends and opponents during the game. Overall the aim is to create a playable “Jass” game, with a playing atmosphere similar to the real world. The external API should be implemented by enabling the user to login with their Google account and use their Google profile picture as an avatar.
 
-Read and go through those Tutorials, It will make your life easier!
+## Technologies
+* React
+* Java Spring Boot
+* PostgeSQL
+* Heroku: Cloud Application Platform
 
-- Read the React [Docs](https://reactjs.org/docs/getting-started.html)
-- Do this React [Getting Started](https://reactjs.org/tutorial/tutorial.html) Tutorial (it doesn’t assume any existing React knowledge)
-- Get an Understanding of [CSS](http://localhost:3000) and [HTML](https://www.w3schools.com/html/html_intro.asp)!
+## High-level components
+* [UserList](https://github.com/sopra-fs21-group-25/sopra-fs21-jass-client/blob/master/src/components/application/applicationAssets/UserList.js): component, which provides functionality of searching Global Users, adding Friends and communicate with Users by invoking Chat component.
+* [Chat](https://github.com/sopra-fs21-group-25/sopra-fs21-jass-client/blob/master/src/components/application/applicationAssets/UserChat.js): component, which provides functionality of live communication between two or several users during lobby creation process, being in the game or simply private chatting.  
+* [Lobby](https://github.com/sopra-fs21-group-25/sopra-fs21-jass-client/blob/master/src/components/application/LobbyPage.js): component, which makes it possible to prepare for the game, adjust in-game characteristics, invite people to the game or remove players from the lobby. 
+* [Game](https://github.com/sopra-fs21-group-25/sopra-fs21-jass-client/blob/master/src/components/game/GamePlus.js): the most important component, which provides full experience of playing Jass. These include cards dealign, ability to play card, seeing scoreboard and much more.
+* [Google Login](https://github.com/sopra-fs21-group-25/sopra-fs21-jass-client/blob/master/src/components/login/Login.js): external API, ability to sign in/sign up with your Google account.
 
-Once you have done all of this, in the template there are two main external dependencies that you should look at:
-
-- [styled-components](https://www.styled-components.com/docs)
-  It removes the mapping between components and styles (i.e. external css files). This means that when you're defining your styles, you're actually creating a normal React component, that has your styles attached to it
-* [react-router-dom](https://reacttraining.com/react-router/web/guides/quick-start) Declarative routing for React being a collection of navigational components that compose declaratively with your application. 
-* [react-hooks](https://reactrouter.com/web/api/Hooks) Let's you access the state of the router and perform navigation from inside your components.
-
-
-
-## Prerequisites and Installation
-
-For your local development environment you'll need Node.js >= 8.10. You can download it [here](https://nodejs.org). All other dependencies including React get installed with:
-
-### `npm install`
-
-This has to be done before starting the application for the first time (only once).
-
+## Launch & Deployment
+### Frontend
+Installing React dependencies:
+### `npm install --legacy-peer-deps`
+Running the app in the development mode:
 ### `npm run dev`
-
-Runs the app in the development mode.<br>
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
-
-The page will reload if you make edits.<br>
-You will also see any lint errors in the console (use Google Chrome!).
-
-### `npm run test`
-
-Launches the test runner in the interactive watch mode.<br>
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-> For macOS user running into an 'fsevents' error: https://github.com/jest-community/vscode-jest/issues/423
-
+Builds the app for production to the `build` folder:
 ### `npm run build`
 
-Builds the app for production to the `build` folder.<br>
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Backend
+You can use the local Gradle Wrapper to build the application.
 
-The build is minified and the filenames include the hashes.<br>
-Your app is ready to be deployed!
+Plattform-Prefix:
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+-   MAC OS X: `./gradlew`
+-   Linux: `./gradlew`
+-   Windows: `./gradlew.bat`
 
-## Learn More
+Running the app:
+### `./gradlew bootRun`
+Building the app:
+### `./gradlew build`
+To set up connection to the database refer to the [application.properties](https://github.com/sopra-fs21-group-25/sopra-fs21-jass-server/blob/master/src/main/resources/application.properties).
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Deployment
+Change to the deployment settings of the client [here](https://github.com/sopra-fs21-group-25/sopra-fs21-jass-client/blob/master/.github/workflows/deploy.yml) and deployment settings of the server [here](https://github.com/sopra-fs21-group-25/sopra-fs21-jass-server/blob/master/.github/workflows/deploy.yml). As deployment server we use Heroku.
 
+## Illustrations
+### Login Page
+On the Login Page User has several options: sign up, sign in, enter as Guest User or login with Google account. 
+![alt text](./illustrations/login.png)
 
->Thanks to Lucas Pelloni for the template
+### Menu Page
+By successful login User is redirected to the Menu Page. On the Menu Page User can go briefly through the Jass rules, add Global Users to friend list, communicating with other users via invoking chat, creating a new game or joining existing one. 
+![alt text](./illustrations/menu.png)
+
+### Profile Page
+On the Profile Page User can either change his profile picture or his username. 
+![alt text](./illustrations/profile.png)
+
+### Lobby Page
+On the Lobby page I can take a sit on the particular spot of the table and wait for other players. If I am a creator of the game, I can start the game. 
+![alt text](./illustrations/lobby.png)
+
+### Game Page
+From the Lobby page, users are redirected to the Game page. On the Game page User can play cards, see scoreboard, experiencing full Jass Game. 
+![alt text](./illustrations/game.png)
+
+## Roadmap
+:black_square_button: in case of internet failure/one or more inactive users: pause the game<br/>
+:black_square_button: in running game: show player's avatars next to their end of the table<br/>
+:black_square_button: add 'Merry' in-game mode<br/>
+:black_square_button: add 'Gusti' in-game mode<br/>
+:black_square_button: add 'Slalom' in-game mode<br/>
+:black_square_button: add 'Undenufe' in-game mode<br/>
+:black_square_button: add 'Obenabe' in-game mode<br/>
+:black_square_button: add 'Trump' in-game mode<br/>
+
+## Authors and acknowledgment
+- [Gregory Frommelt](https://github.com/fromGreg)
+- [Daniil Ratarov](https://github.com/RatarovDaniil)
+- [Denys Trieskunov](https://github.com/treskdenis)
+- [Laura Vogt](https://github.com/laura-vogt)
+
+## License
+We decided not to license our project since our creative work is under exclusive copyright by default. Nobody else can copy, distribute, or modify our work without being at risk of take-downs, shake-downs, or litigation.
