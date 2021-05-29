@@ -6,7 +6,7 @@ import { api, handleError } from '../../helpers/api';
 import { Button } from '../../views/design/Button';
 import {withRouter} from 'react-router-dom';
 import '../application/css/menu.css';
-import {convertBase64DataToImageUrl} from "../../helpers/convertBase64DataToImage";
+import {convertBase64DataToImageUrl} from "../../helpers/utilityFunctions";
 import {UserList} from "../application/applicationAssets/UserList";
 
 

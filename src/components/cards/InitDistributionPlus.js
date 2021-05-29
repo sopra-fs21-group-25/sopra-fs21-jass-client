@@ -1,81 +1,16 @@
-import React, {Component, createRef, useEffect, useRef, useState} from 'react';
-import styled, {css} from 'styled-components';
-import Hand from "./PlayingCard/Hand/Hand";
-import PlayingCardPlus from "./PlayingCard/Hand/PlayingCard/PlayingCardPlus";
-import { Button } from '../../views/design/Button';
-import './css/init.css';
-import HandPlus from "./PlayingCard/Hand/HandPlus";
+import React, {useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import '../game/gameAssets/gameStyles.scss';
+import {GlowButton} from "../../views/design/ElegantAssets";
+import HandSpread from "./PlayingCard/Hand/HandSpread";
+import PlayingCardsList from "./PlayingCard/Hand/PlayingCard/PlayingCardsList";
+import {UserListContext} from "../../App";
+import {api} from "../../helpers/api";
+import {UserType} from "../shared/models/UserType";
+import guestIcon from '../../views/images/icons/guest-icon.svg';
+import {convertBase64DataToImageUrl} from "../../helpers/utilityFunctions";
 
 
-const InitContainer = styled.div`
-  display: grid;
-  grid-template-columns: 10% 5% auto 5% 10%;
-  grid-template-rows: 15% auto 15%;
-  height: 100%;
-  width: 100%;
-`;
 
-const PlayerHandsContainer = styled.div`
-  grid-column: ${props => props.player === 'B' ? '5' : (props.player === 'D' ? '1' : '3')};
-  grid-row: ${props => props.player === 'A' ? '3' : (props.player === 'C' ? '1' : '2')};
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  & > div {
-    ${props => props.player === 'A' ?
-            css`
-              height: 70% !important;
-            ` : props.player === 'B' ?
-                    css`
-                      -webkit-transform: rotate(90deg);
-                      -moz-transform: rotate(90deg);
-                      -o-transform: rotate(90deg);
-                      -ms-transform: rotate(90deg);
-                      transform: rotate(90deg);
-                      height: 0px !important;
-                    ` : props.player === 'C' ?
-                            css`
-                              height: 0px !important;
-                            ` : 
-                            css`
-                              -webkit-transform: rotate(270deg);
-                              -moz-transform: rotate(270deg);
-                              -o-transform: rotate(270deg);
-                              -ms-transform: rotate(270deg);
-                              transform: rotate(270deg);
-                              height: 0px !important;
-                            `}
-  };
-`;
-
-const PlayerCardSpot = styled.div`
-  grid-column: ${props => props?.player === 'B' ? '3' : props?.player === 'D' ? '1' : '2'};
-  grid-row: ${props => props.player === 'A' ? '3' : props.player === 'C' ? '1' : '2'};
-  justify-content: ${props => props.player === 'B' ? 'flex-start' : props.player === 'D' ? 'flex-end' : 'center'};
-  align-items: ${props => props.player === 'A' ? 'flex-start' : props.player === 'C' ? 'flex-end' : 'center'};
-  display: none;
-  & > div {
-    ${props => props.player === 'A' ?
-            css`` : props.player === 'B' ?
-                    css`
-                      -webkit-transform: rotate(90deg);
-                      -moz-transform: rotate(90deg);
-                      -o-transform: rotate(90deg);
-                      -ms-transform: rotate(90deg);
-                      transform: rotate(90deg) !important;
-                    ` : props.player === 'C' ?
-                            css`
-                              margin-top: auto;
-                            ` :
-                            css`
-                              -webkit-transform: rotate(90deg);
-                              -moz-transform: rotate(90deg);
-                              -o-transform: rotate(90deg);
-                              -ms-transform: rotate(90deg);
-                              transform: rotate(90deg) !important;
-                            `}
-  };
-`;
 
 const parseCardToImageString = card => {
   let result = '';
@@ -128,15 +63,17 @@ const InitDistributionPlus = props => {
 
   const [cardsInHands, setCardsInHands] = useState(null);
   const [cardsOnTable, setCardsOnTable] = useState(null);
-
+  const [maxCardsContainerHeight, setMaxCardsContainerHeight] = useState(0);
   const [myTurn, setMyTurn] = useState(false);
 
   const refPlayArea = useRef(null);
-  const playArea = useRef(null);
-  const refASpot = useRef(null);
-  const refBSpot = useRef(null);
-  const refCSpot = useRef(null);
-  const refDSpot = useRef(null);
+  const refTableCardDim = useRef(null);
+  const refAHandContainer = useRef(null);
+  const refBHandContainer = useRef(null);
+  const refCHandContainer = useRef(null);
+  const refDHandContainer = useRef(null);
+
+  const {profilePictureCollection, setProfilePictureCollection} = useContext(UserListContext);
 
   const myIndex = props.myIndex;
 
@@ -159,8 +96,6 @@ const InitDistributionPlus = props => {
   }
 
   const handlePlacingCard = card => {
-    refASpot.current.style.display = 'flex';
-
     setMyTurn(false);
 
     const cardToBeNotifiedAbout = {...card};
@@ -168,9 +103,30 @@ const InitDistributionPlus = props => {
     props.updateGameState(cardToBeNotifiedAbout, null);
   }
 
-  useEffect(() => {
-    playArea.current = refPlayArea.current.getBoundingClientRect();
-  }, []);
+  useLayoutEffect(() => {
+    const fetchProfilePictures = async () => {
+      const newProfilePictures = {...profilePictureCollection};
+      let collectionChange = false;
+
+      for(let i=0; i<4; i++) {
+        if(!profilePictureCollection[props.playerIds[i]]) {
+          collectionChange = true;
+          const type = (await api.get(`/users/${props.playerIds[i]}`)).data.userType;
+          if(type === UserType.GUEST) {
+            newProfilePictures[props.playerIds[i]] = guestIcon;
+          } else {
+            newProfilePictures[props.playerIds[i]] = convertBase64DataToImageUrl((await api.get(`/files/${props.playerIds[i]}`)).data);
+          }
+        }
+      }
+
+      if(collectionChange) {
+        setProfilePictureCollection(newProfilePictures);
+      }
+    }
+
+    void fetchProfilePictures();
+  }, [props.playerIds])
 
   // update cardsOnTable
   useEffect(() => {
@@ -191,111 +147,215 @@ const InitDistributionPlus = props => {
 
     setCardsInHands({
       playerA: props.cardsInHands.map(card => ({...card, imageString: parseCardToImageString(card)})),
-      playerB: Array(9).fill({imageString: 'flipped'}),
-      playerC: Array(9).fill({imageString: 'flipped'}),
-      playerD: Array(9).fill({imageString: 'flipped'})
+      playerB: Array(props.amountOfCardsHeldByPlayers[(myIndex + 1) % 4]).fill({imageString: 'flipped'}),
+      playerC: Array(props.amountOfCardsHeldByPlayers[(myIndex + 2) % 4]).fill({imageString: 'flipped'}),
+      playerD: Array(props.amountOfCardsHeldByPlayers[(myIndex + 3) % 4]).fill({imageString: 'flipped'})
     });
-
-    // update the refs to place the cards correctly
-    if (cardA) { refASpot.current.style.display = 'flex'; }
-    if (cardB) { refBSpot.current.style.display = 'flex'; }
-    if (cardC) { refCSpot.current.style.display = 'flex'; }
-    if (cardD) { refDSpot.current.style.display = 'flex'; }
 
     updateMyTurn();
 
   }, [props]);
 
+  useLayoutEffect(() => {
+    const setMax = () => {
+      setMaxCardsContainerHeight(Math.min(
+          refBHandContainer.current.clientWidth,
+          refCHandContainer.current.clientHeight,
+          refDHandContainer.current.clientWidth
+      ));
+    };
+    setMax();
+
+    window.addEventListener('resize', setMax);
+    return () => window.removeEventListener('resize', setMax);
+  }, [refBHandContainer, refCHandContainer, refDHandContainer])
 
   return (
-      <InitContainer>
-        <PlayerHandsContainer player={'A'}>
-          {refPlayArea && refPlayArea.current && cardsOnTable && cardsInHands ?
-              <HandPlus
-                  disabled={!myTurn}
-                  layout={"spread"}
-                  playArea={refPlayArea.current}
-                  handlePlacingCard={c => handlePlacingCard(c)}
-                  cards={cardsInHands.playerA}
-                  cardsPlayed={cardsOnTable}
-                  myIndex={myIndex}
-                  cardSize={100}/>
-              : <></>}
-        </PlayerHandsContainer>
-        {cardsInHands ?
-            <>
-              <PlayerHandsContainer player={'B'}>
-                <HandPlus disabled={true} layout={"fan"} cards={cardsInHands.playerB} cardSize={100}/>
-              </PlayerHandsContainer>
-
-              <PlayerHandsContainer player={'C'}>
-                <HandPlus disabled={true} layout={"fan"} cards={cardsInHands.playerC} cardSize={100}/>
-              </PlayerHandsContainer>
-
-              <PlayerHandsContainer player={'D'}>
-                <HandPlus disabled={true} layout={"fan"} cards={cardsInHands.playerD} cardSize={100}/>
-              </PlayerHandsContainer>
-            </>
-            : <></>}
-
-
-        <div className="actionContainer">
-          <div className="actionChildContainer" ref={refPlayArea}>
-            <div className="nextTrickButton">
-              {props.playerStartsTrick[myIndex] && !props.cardsPlayed.includes(null) ?
-                  <Button onClick={() => triggerNextTrick()}>
-                    {props.trickToPlay === 0 ? 'Next Round' : 'Next Trick'}
-                  </Button>
-                  : <></>
+    <div className={'middle-column-wrapper'}>
+        <div className={'action-wrapper'}>
+          <div className={'next-trick-button-wrapper'}>
+            {!!props.playerStartsTrick[myIndex] && !props.cardsPlayed.includes(null) &&
+              <GlowButton onClick={() => triggerNextTrick()} style={{height: '100%', width: '100%', minWidth: 0, fontSize: 'inherit'}}>
+                {props.trickToPlay === 0 ? 'next round' : 'next trick'}
+              </GlowButton>
+            }
+          </div>
+          <div className={'action__inner'} ref={refPlayArea}>
+            <div className={'action-spot-A'}>
+              {!!cardsOnTable?.playerA &&
+                <div className={'action-spot-image-wrapper'}>
+                  <img
+                    ref={refTableCardDim}
+                    style={{
+                      opacity: PlayingCardsList[cardsOnTable.playerA.imageString] ? 1 : 0,
+                      boxShadow: props.playerStartsTrick[myIndex] && !props.cardsPlayed.includes(null) ? '0 0 8px 10px rgba(255,240,150, 0.7)' : '0 0 0 transparent'
+                    }}
+                    className={'action-spot-image-layout'}
+                    src={PlayingCardsList[cardsOnTable.playerA.imageString]}
+                    alt={''}
+                  />
+                </div>
               }
             </div>
-            <PlayerCardSpot player={'A'} ref={refASpot}>
-              {cardsOnTable ?
-                  <PlayingCardPlus
-                      key={"playerA"}
-                      disabled={true}
-                      height={100}
-                      card={cardsOnTable.playerA}
-                      elevateOnClick={50}
+            <div className={'action-spot-B'}>
+              {!!cardsOnTable?.playerB &&
+                <div className={'action-spot-image-wrapper'}>
+                  <img
+                      style={{
+                        display: PlayingCardsList[cardsOnTable.playerB.imageString] ? 'inline' : 'none',
+                        boxShadow: props.playerStartsTrick[(myIndex + 1) % 4] && !props.cardsPlayed.includes(null) ? '0 0 8px 10px rgba(255,240,150, 0.7)' : '0 0 0 transparent'
+                      }}
+                      className={'action-spot-image-layout'}
+                      src={PlayingCardsList[cardsOnTable.playerB.imageString]}
+                      alt={''}
                   />
-                  : <></>}
-            </PlayerCardSpot>
-            <PlayerCardSpot player={'B'} ref={refBSpot}>
-              {cardsOnTable ?
-                  <PlayingCardPlus
-                      key={"playerB"}
-                      disabled={true}
-                      height={100}
-                      card={cardsOnTable.playerB}
-                      elevateOnClick={50}
+                </div>
+              }
+            </div>
+            <div className={'action-spot-C'}>
+              {!!cardsOnTable?.playerC &&
+                <div className={'action-spot-image-wrapper'}>
+                  <img
+                      style={{
+                        display: PlayingCardsList[cardsOnTable.playerC.imageString] ? 'inline' : 'none',
+                        boxShadow: props.playerStartsTrick[(myIndex + 2) % 4] && !props.cardsPlayed.includes(null) ? '0 0 8px 10px rgba(255,240,150, 0.7)' : '0 0 0 transparent'
+                      }}
+                      className={'action-spot-image-layout'}
+                      src={PlayingCardsList[cardsOnTable.playerC.imageString]}
+                      alt={''}
                   />
-                  : <></>}
-            </PlayerCardSpot>
-            <PlayerCardSpot player={'C'} ref={refCSpot}>
-              {cardsOnTable ?
-                  <PlayingCardPlus
-                      key={"playerC"}
-                      disabled={true}
-                      height={100}
-                      card={cardsOnTable.playerC}
-                      elevateOnClick={50}
+                </div>
+              }
+            </div>
+            <div className={'action-spot-D'}>
+              {!!cardsOnTable?.playerD &&
+                <div className={'action-spot-image-wrapper'}>
+                  <img
+                      style={{
+                        display: PlayingCardsList[cardsOnTable.playerD.imageString] ? 'inline' : 'none',
+                        boxShadow: props.playerStartsTrick[(myIndex + 3) % 4] && !props.cardsPlayed.includes(null) ? '0 0 8px 10px rgba(255,240,150, 0.7)' : '0 0 0 transparent'
+                      }}
+                      className={'action-spot-image-layout'}
+                      src={PlayingCardsList[cardsOnTable.playerD.imageString]}
+                      alt={''}
                   />
-                  : <></>}
-            </PlayerCardSpot>
-            <PlayerCardSpot player={'D'} ref={refDSpot}>
-              {cardsOnTable ?
-                  <PlayingCardPlus
-                      key={"playerD"}
-                      disabled={true}
-                      height={100}
-                      card={cardsOnTable.playerD}
-                      elevateOnClick={50}
-                  />
-                  : <></>}
-            </PlayerCardSpot>
+                </div>
+              }
+            </div>
           </div>
         </div>
-      </InitContainer>
+        <div className={'player-hands-container__A'} ref={refAHandContainer}>
+          {!!(refPlayArea.current && cardsOnTable && cardsInHands && refTableCardDim.current) && !!maxCardsContainerHeight &&
+            <HandSpread
+              disabled={!myTurn}
+              layout={'horizontal-lr'}
+              playArea={refPlayArea.current}
+              handlePlacingCard={c => handlePlacingCard(c)}
+              cards={cardsInHands.playerA}
+              cardsPlayed={cardsOnTable}
+              maxDimension={maxCardsContainerHeight}
+              opponent={false}
+              dragCardDims={{width: refTableCardDim.current.clientWidth, height: refTableCardDim.current.clientHeight}}
+            />
+          }
+        </div>
+        <div className={'player-hands-container__B'} ref={refBHandContainer}>
+          {!!cardsInHands && !!maxCardsContainerHeight &&
+            <HandSpread
+              disabled={true}
+              layout={'vertical-bt'}
+              cards={cardsInHands.playerB}
+              maxDimension={maxCardsContainerHeight}
+              parentXY={refBHandContainer.current}
+              opponent={true}
+            />
+          }
+        </div>
+        <div className={'player-hands-container__C'} ref={refCHandContainer}>
+          {!!cardsInHands && !!maxCardsContainerHeight &&
+            <HandSpread
+              disabled={true}
+              layout={'horizontal-rl'}
+              cards={cardsInHands.playerC}
+              maxDimension={maxCardsContainerHeight}
+              parentXY={refCHandContainer.current}
+              opponent={true}
+            />
+          }
+        </div>
+        <div className={'player-hands-container__D'} ref={refDHandContainer}>
+          {!!cardsInHands && !!maxCardsContainerHeight &&
+            <HandSpread
+              disabled={true}
+              layout={'vertical-tb'}
+              cards={cardsInHands.playerD}
+              maxDimension={maxCardsContainerHeight}
+              parentXY={refDHandContainer.current}
+              opponent={true}
+            />
+          }
+        </div>
+        <div className={'player-name-display-container__A'}>
+          <div className={'player-display__A' + (props.currentlyActingPlayerIndex === myIndex ? ' acting-highlight' : '')}>
+            <div className={'icon-wrapper__generic'}>
+              <img
+                className={'user-avatar-style'}
+                src={profilePictureCollection[props.playerIds[myIndex]]}
+                alt={guestIcon}
+              />
+            </div>
+            <div className={'name-wrapper__generic'}>
+              {props.playerUsernames[myIndex]}
+            </div>
+          </div>
+        </div>
+        <div className={'player-name-display-container__B'}>
+          <div className={'player-display-helper__B'}>
+            <div className={'player-display__B' + (props.currentlyActingPlayerIndex === (myIndex+1)%4 ? ' acting-highlight' : '')}>
+              <div className={'icon-wrapper__generic'}>
+                <img
+                  className={'user-avatar-style'}
+                  src={profilePictureCollection[props.playerIds[(myIndex + 1) % 4]]}
+                  alt={guestIcon}
+                />
+              </div>
+              <div className={'name-wrapper__generic'}>
+                {props.playerUsernames[(myIndex + 1) % 4]}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className={'player-name-display-container__C'}>
+          <div className={'player-display__C' + (props.currentlyActingPlayerIndex === (myIndex+2)%4 ? ' acting-highlight' : '')}>
+            <div className={'icon-wrapper__generic'}>
+              <img
+                className={'user-avatar-style'}
+                src={profilePictureCollection[props.playerIds[(myIndex + 2) % 4]]}
+                alt={guestIcon}
+              />
+            </div>
+            <div className={'name-wrapper__generic'}>
+              {props.playerUsernames[(myIndex + 2) % 4]}
+            </div>
+          </div>
+        </div>
+        <div className={'player-name-display-container__D'}>
+          <div className={'player-display-helper__D'}>
+            <div className={'player-display__D' + (props.currentlyActingPlayerIndex === (myIndex+3)%4 ? ' acting-highlight' : '')}>
+              <div className={'icon-wrapper__generic'}>
+                <img
+                  className={'user-avatar-style'}
+                  src={profilePictureCollection[props.playerIds[(myIndex + 3) % 4]]}
+                  alt={guestIcon}
+                />
+              </div>
+              <div className={'name-wrapper__generic'}>
+                {props.playerUsernames[(myIndex + 3) % 4]}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
   );
 }
 

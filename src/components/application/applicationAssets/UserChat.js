@@ -1,6 +1,7 @@
 import React, {useState, useRef, useMemo} from 'react';
 import {useSwipeScroll, useOutsideClickHandler} from "../../../helpers/customHooks";
 import {MainContainer, ChatContainer, MessageList, Message, MessageInput, MessageSeparator} from "@chatscope/chat-ui-kit-react";
+import {convertChatMessageDTOtoMessageDataObj, deriveMessageModel} from "../../../helpers/utilityFunctions";
 import Picker from 'emoji-picker-react';
 import '../css/userChat.scss';
 
@@ -27,12 +28,7 @@ export const UserChat = props => {
         text: chatInput
       };
 
-      props.appendMessage({
-        senderId: props.user.id,
-        senderUsername: props.user.username,
-        timestamp: chatMessageDTO.timestamp,
-        text: chatInput
-      });
+      props.appendMessage(convertChatMessageDTOtoMessageDataObj(chatMessageDTO));
 
       props.stompClient.publish({
         destination: `/app/messages/incoming`,
@@ -43,18 +39,6 @@ export const UserChat = props => {
   };
 
 
-  const deriveMessageModel = ({senderId, senderUsername, timestamp, text}) => {
-    return {
-      message: text,
-      sentTime: timestamp.toLocaleTimeString('de-CH', {timeStyle: 'short'}),
-      sender: senderUsername,
-      direction: senderId === props.user.id ? 'outgoing' : 'incoming',
-      position: 'single',
-      type: 'text'
-    };
-  };
-
-  return useMemo(() => {
     return (
         <>
           {props.isOpen ?
@@ -85,7 +69,7 @@ export const UserChat = props => {
                         {props.activeTab && props.allTabs &&
                         props.allTabs.find(t => t.chatPartnerId === props.activeTab.chatPartnerId)
                             .messageData.map((m, index, array) => {
-                          let messageModel = deriveMessageModel(m);
+                          let messageModel = deriveMessageModel(m, props.user.id);
                           if (index > 0) {
                             let currDate = (new Date(m.timestamp)).setHours(0, 0, 0, 0);
                             let prevDate = (new Date(array[index - 1].timestamp)).setHours(0, 0, 0, 0);
@@ -139,8 +123,7 @@ export const UserChat = props => {
               </div>
               : <></>}
         </>
-    );
-  }, [props.isOpen, props.activeTab, props.allTabs, chatInput, hidePicker]);
+  );
 }
 
 

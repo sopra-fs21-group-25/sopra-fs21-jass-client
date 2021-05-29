@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useRef, useState} from 'react';
+import React, {useContext, useEffect, useMemo, useRef, useState} from 'react';
 import styled from 'styled-components';
 import {Col, Nav, Row, Tab} from "react-bootstrap";
 import {GlowButton, IconicInput} from "../../../views/design/ElegantAssets";
@@ -10,9 +10,14 @@ import {UserChat} from './UserChat';
 import 'react-contexify/dist/ReactContexify.css';
 import * as ReactDOM from "react-dom";
 import {UserType} from "../../shared/models/UserType";
-import {convertBase64DataToImageUrl} from "../../../helpers/convertBase64DataToImage";
 import {UserListContext} from '../../../App'
 import guestIcon from '../../../views/images/icons/guest-icon.svg';
+import {
+  convertBase64DataToImageUrl,
+  convertChatMessageDTOtoMessageDataObj,
+  getChatPartnerIdFromChatMessageDTO
+} from "../../../helpers/utilityFunctions";
+
 
 const FRIEND_MENU_ID = 'friend_menu_id';
 const USER_MENU_ID = 'user_menu_id';
@@ -115,56 +120,6 @@ export const UserList = props => {
   }, [fetchUsersTrigger]);
 
 
-
-
-/*  useEffect(() => {
-    const fetchAndSetFriends = async () => {
-      const fetchedFriends = (await api.get(`/friends/${thisUser.id}`)).data;
-      const newProfilePictureCollection = {...profilePictureCollection};
-      let havePicturesChanged = false;
-      for (let f of fetchedFriends) {
-        if(!profilePictureCollection[f.id]) {
-          havePicturesChanged = true;
-          if(f.userType === UserType.GUEST) {
-            newProfilePictureCollection[f.id] = guestIcon;
-          } else {
-            newProfilePictureCollection[f.id] = convertBase64DataToImageUrl((await api.get(`/files/${f.id}`)).data);
-          }
-        }
-      }
-      if(havePicturesChanged) {
-        setProfilePictureCollection(newProfilePictureCollection);
-      }
-      setFriends(fetchedFriends);
-      return fetchedFriends;
-    };
-    fetchAndSetFriends().then(fetchedFriends => console.log('Fetched and set friends: ', {fetchedFriends}));
-  }, [fetchFriendsSwitch]);
-
-  useEffect(() => {
-    const fetchAndSetRemainingUsers = async () => {
-      const fetchedUsers = (await api.get(`/users/not_friends/${thisUser.id}`)).data;
-      const newProfilePictureCollection = {...profilePictureCollection};
-      let havePicturesChanged = false;
-      for (let u of fetchedUsers) {
-        if(!profilePictureCollection[u.id]) {
-          havePicturesChanged = true;
-          if(u.userType === UserType.GUEST) {
-            newProfilePictureCollection[u.id] = guestIcon;
-          } else {
-            newProfilePictureCollection[u.id] = convertBase64DataToImageUrl((await api.get(`/files/${u.id}`)).data);
-          }
-        }
-      }
-      if(havePicturesChanged) {
-        setProfilePictureCollection(newProfilePictureCollection);
-      }
-      setRemainingUsers(fetchedUsers);
-      return fetchedUsers;
-    };
-    fetchAndSetRemainingUsers().then(fetchedUsers => console.log('Fetched and set remaining users: ', {fetchedUsers}));
-  }, [fetchUsersSwitch]);*/
-
   useEffect(() => {
     const fetchAndSetFriendRequests = async () => {
       const friendRequestResponse = await api.get(`/friend_requests/with_username/${thisUser.id}`);
@@ -206,7 +161,7 @@ export const UserList = props => {
   useSubscription(`/messages/outgoing/${thisUser.id}`, async msg => {
     const dto = JSON.parse(msg.body);
     const messageDataObj = convertChatMessageDTOtoMessageDataObj(dto);
-    const chatPartnerId = getChatPartnerIdFromChatMessageDTO(dto);
+    const chatPartnerId = getChatPartnerIdFromChatMessageDTO(dto, thisUser.id);
 
     const chatDataObjIndex = chatData.findIndex(data => data.chatPartnerId === chatPartnerId);
     let chatDataObj = chatDataObjIndex !== -1 ? chatData[chatDataObjIndex] : undefined;
@@ -308,17 +263,6 @@ export const UserList = props => {
   }
 
 
-  const convertChatMessageDTOtoMessageDataObj = dto => {
-    return {
-      senderId: dto.senderId,
-      senderUsername: dto.senderUsername,
-      timestamp: new Date(dto.timestamp),
-      text: dto.text
-    };
-  }
-  const getChatPartnerIdFromChatMessageDTO = dto => {
-    return dto?.senderId === thisUser.id ? dto?.environmentId : dto?.senderId;
-  }
   const appendMessageToActiveChat = messageDataObj => {
     const chatDataObjIndex = chatData.findIndex(data => data.chatPartnerId === activeChatData.chatPartnerId);
     const chatDataObj = chatData[chatDataObjIndex];
@@ -330,6 +274,8 @@ export const UserList = props => {
     );
     setChatData(newChatData);
   };
+
+  return useMemo(() => {
 
 
   return (
@@ -476,6 +422,7 @@ export const UserList = props => {
         </UserListTriggerButtonWrapper>
       </>
   );
+  }, [showChat, activeChatData, chatData, showUserList, friendRequests, friends, remainingUsers, friendSearch, globalSearch])
 }
 
 // used to render contextmenu correctly with its fixed position
@@ -521,7 +468,7 @@ const UserItem = props => {
         circle
       </div>
       <div style={{width: "3.5rem", height: "3.5rem", marginRight: "5%"}}>
-        <img style={{borderRadius: "50%", maxWidth: "100%", maxHeight: "100%", width: "100%", height: "auto"}}
+        <img className={'user-avatar-style'}
              src={props.profilePicture}
              alt={guestIcon}
         />
@@ -735,5 +682,6 @@ const UserListTriggerButtonWrapper = styled.div`
   position: fixed;
   bottom: 0.5rem;
   right: 1rem;
+  z-index: 40;
 `;
 

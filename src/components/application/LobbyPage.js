@@ -1,22 +1,21 @@
-import React, {useEffect, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {useHistory, useLocation} from "react-router-dom";
 import {BackgroundContainer} from "../../helpers/layout";
 import {api} from "../../helpers/api";
 import {useStompClient, useSubscription} from 'react-stomp-hooks';
 import {
-  BackButton,
-  JassTeppichWrapper,
-  LobbyWrapper,
-  ChatWrapper,
-  PlayerWrapper,
-  PlayerHeader,
-  StartButton,
-  PlayerListWrapper,
   LobbyJassTable,
   LobbyPlayerList,
   LobbySearchbar
 } from "./lobbyAssets/LobbyAssets";
 import {UserList} from "./applicationAssets/UserList";
+import {UserListContext} from "../../App";
+import {UserType} from "../shared/models/UserType";
+import guestIcon from '../../views/images/icons/guest-icon.svg';
+import {convertBase64DataToImageUrl} from "../../helpers/utilityFunctions";
+import './lobbyAssets/lobbyAssets.scss';
+import {GlowButton} from "../../views/design/ElegantAssets";
+import {GroupChat} from "./lobbyAssets/GroupChat";
 
 
 const LobbyPage = () => {
@@ -26,12 +25,13 @@ const LobbyPage = () => {
   const [allUsersFetchSwitch, setAllUsersFetchSwitch] = useState(false);
   const thisLobby = useLocation().state;
   const [usersAtTable, setUsersAtTable] = useState([thisLobby.userTop, thisLobby.userLeft, thisLobby.userBottom, thisLobby.userRight]);
+  const [usersAtTablePictures, setUsersAtTablePictures] = useState([]);
   const myId = JSON.parse(sessionStorage.getItem('user')).id;
   const myUsername = JSON.parse(sessionStorage.getItem('user')).username;
   const iAmCreator = useLocation().state.creatorUsername === myUsername;
   const history = useHistory();
   const stompClient = useStompClient();
-
+  const {profilePictureCollection, setProfilePictureCollection} = useContext(UserListContext);
 
 
   // function leveraged to handle proper state updates of all users in the lobby when a user leaves
@@ -58,6 +58,7 @@ const LobbyPage = () => {
         });
       }
     } catch(error) {
+      console.error(error);
       alert("Something went wrong when trying to return to the menu")
     } finally {
       // finally redirect back to the menu
@@ -119,6 +120,44 @@ const LobbyPage = () => {
   }
 
 
+
+  // retrieve profile pictures of users sitting around the table from backend
+  useEffect(() => {
+    const fetchProfilePictures = async () => {
+      const newUsersAtTablePictures = [...usersAtTablePictures];
+      const newProfilePictureCollection = {...profilePictureCollection};
+      let collectionChange = false;
+      let tableChange = false;
+
+      for(let i=0; i<4; i++) {
+        if(usersAtTable[i]) {
+          if(!profilePictureCollection[usersAtTable[i].id]) {
+            collectionChange = true;
+            if(usersAtTable[i].userType === UserType.GUEST) {
+              newUsersAtTablePictures[i] = guestIcon;
+              newProfilePictureCollection[usersAtTable[i].id] = guestIcon;
+            } else {
+              const profilePicture = convertBase64DataToImageUrl((await api.get(`/files/${usersAtTable[i].id}`)).data);
+              newUsersAtTablePictures[i] = profilePicture;
+              newProfilePictureCollection[usersAtTable[i].id] = profilePicture;
+            }
+          } else {
+            tableChange = true;
+            newUsersAtTablePictures[0] = profilePictureCollection[usersAtTable[0].id];
+          }
+        }
+      }
+
+      if(tableChange && !collectionChange) {
+        setUsersAtTablePictures(newUsersAtTablePictures);
+      } else {
+        setProfilePictureCollection(newProfilePictureCollection);
+        setUsersAtTablePictures(newUsersAtTablePictures);
+      }
+    }
+
+    void fetchProfilePictures();
+  }, [usersAtTable])
 
   // on component mount (I have joined the lobby), inform the other users in the lobby to re-fetch the users in the lobby
   useEffect(() => {
@@ -226,42 +265,49 @@ const LobbyPage = () => {
 
   return (
       <BackgroundContainer>
-        <LobbyWrapper>
-          {iAmCreator ? (
-              <LobbySearchbar
-                users={allUsers}
-                client={stompClient}
-                lobbyId={thisLobby.id}
-                lobbyCreator={thisLobby.creatorUsername}
-              />
-          ) : <></> }
-          <PlayerWrapper>
-            <PlayerHeader>
-              Game Lobby
-            </PlayerHeader>
-            <PlayerListWrapper>
-              <LobbyPlayerList
-                  users={lobbyUsers}
-                  creator={thisLobby.creatorUsername}
-                  permitted={iAmCreator}
-                  lobbyId={thisLobby.id}
-                  client={stompClient}
-              />
-            </PlayerListWrapper>
-          </PlayerWrapper>
-          <JassTeppichWrapper>
-            <LobbyJassTable client={stompClient} tableUsers={usersAtTable} lobbyId={thisLobby.id}/>
-          </JassTeppichWrapper>
-          <ChatWrapper/>
-          <BackButton onClick={() => backToMenu()}>
-            Back to Mainmenu
-          </BackButton>
-          {iAmCreator ? (
-              <StartButton onClick={() => createGame()}>
-                Start Game
-              </StartButton>
-          ) : <></> }
-        </LobbyWrapper>
+        <div className={'lobby-root-wrapper'}>
+          {iAmCreator ?
+            <LobbySearchbar
+              users={allUsers}
+              client={stompClient}
+              lobbyId={thisLobby.id}
+              lobbyCreator={thisLobby.creatorUsername}
+            />
+          :<></>}
+          <LobbyPlayerList
+            users={lobbyUsers}
+            creator={thisLobby.creatorUsername}
+            permitted={iAmCreator}
+            lobbyId={thisLobby.id}
+            client={stompClient}
+          />
+          <div className={'center-center-grid-box-wrapper'}>
+            <LobbyJassTable
+              client={stompClient}
+              tableUsers={usersAtTable}
+              tableUsersPictures={usersAtTablePictures}
+              lobbyId={thisLobby.id}
+            />
+          </div>
+          <GroupChat
+            environmentId={thisLobby.id}
+            client={stompClient}
+            myId={myId}
+            myUsername={myUsername}
+          />
+          <div className={'bottom-left-button-container'}>
+            <GlowButton onClick={() => backToMenu()}>
+              back to menu
+            </GlowButton>
+          </div>
+          {iAmCreator ?
+            <div className={'bottom-center-button-container'}>
+              <GlowButton onClick={() => createGame()}>
+                start game
+              </GlowButton>
+            </div>
+          :<></>}
+        </div>
         <UserList onMountOpen={false}/>
       </BackgroundContainer>
   );
