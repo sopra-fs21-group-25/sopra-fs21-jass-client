@@ -25,7 +25,7 @@ const LobbyPage = () => {
   const [allUsersFetchSwitch, setAllUsersFetchSwitch] = useState(false);
   const thisLobby = useLocation().state;
   const [usersAtTable, setUsersAtTable] = useState([thisLobby.userTop, thisLobby.userLeft, thisLobby.userBottom, thisLobby.userRight]);
-  const [usersAtTablePictures, setUsersAtTablePictures] = useState([]);
+  const [usersAtTablePictures, setUsersAtTablePictures] = useState([null, null, null, null]);
   const myId = JSON.parse(sessionStorage.getItem('user')).id;
   const myUsername = JSON.parse(sessionStorage.getItem('user')).username;
   const iAmCreator = useLocation().state.creatorUsername === myUsername;
@@ -120,45 +120,6 @@ const LobbyPage = () => {
   }
 
 
-
-  // retrieve profile pictures of users sitting around the table from backend
-  useEffect(() => {
-    const fetchProfilePictures = async () => {
-      const newUsersAtTablePictures = [...usersAtTablePictures];
-      const newProfilePictureCollection = {...profilePictureCollection};
-      let collectionChange = false;
-      let tableChange = false;
-
-      for(let i=0; i<4; i++) {
-        if(usersAtTable[i]) {
-          if(!profilePictureCollection[usersAtTable[i].id]) {
-            collectionChange = true;
-            if(usersAtTable[i].userType === UserType.GUEST) {
-              newUsersAtTablePictures[i] = guestIcon;
-              newProfilePictureCollection[usersAtTable[i].id] = guestIcon;
-            } else {
-              const profilePicture = convertBase64DataToImageUrl((await api.get(`/files/${usersAtTable[i].id}`)).data);
-              newUsersAtTablePictures[i] = profilePicture;
-              newProfilePictureCollection[usersAtTable[i].id] = profilePicture;
-            }
-          } else {
-            tableChange = true;
-            newUsersAtTablePictures[0] = profilePictureCollection[usersAtTable[0].id];
-          }
-        }
-      }
-
-      if(tableChange && !collectionChange) {
-        setUsersAtTablePictures(newUsersAtTablePictures);
-      } else {
-        setProfilePictureCollection(newProfilePictureCollection);
-        setUsersAtTablePictures(newUsersAtTablePictures);
-      }
-    }
-
-    void fetchProfilePictures();
-  }, [usersAtTable])
-
   // on component mount (I have joined the lobby), inform the other users in the lobby to re-fetch the users in the lobby
   useEffect(() => {
 
@@ -190,15 +151,55 @@ const LobbyPage = () => {
     }
   }, [allUsersFetchSwitch])
 
-  // does the actual re-fetching of the lobby users and users at the table triggered by state update of lobbyFetchSwitch
+  // does the actual re-fetching of the lobby users, users at the table and their avatars.
+  // triggered by state update of lobbyFetchSwitch
   useEffect(() => {
     // upon fetch notification do fetching
-    const fetchAndSetLobbyUsersAndUsersAtTable = async () => {
+    const fetchAndSetLobbyUsersAndUsersAtTableAndAvatarsOfTableUsers = async () => {
       try {
         const response = await api.get(`/lobbies/${thisLobby.id}`);
         const fetchedLobby = response.data;
+
+        const newUsersAtTablePictures = [...usersAtTablePictures];
+        const newProfilePictureCollection = {...profilePictureCollection};
+        const newTableUsers = [
+          fetchedLobby.userTop,
+          fetchedLobby.userLeft,
+          fetchedLobby.userBottom,
+          fetchedLobby.userRight
+        ]
+
+        let collectionChange = false;
+        let tableChange = false;
+
+        for(let i=0; i<4; i++) {
+          if(newTableUsers[i]) {
+            if(!profilePictureCollection[newTableUsers[i].id]) {
+              collectionChange = true;
+              if(newTableUsers[i].userType === UserType.GUEST) {
+                newUsersAtTablePictures[i] = guestIcon;
+                newProfilePictureCollection[newTableUsers[i].id] = guestIcon;
+              } else {
+                const profilePicture = convertBase64DataToImageUrl((await api.get(`/files/${newTableUsers[i].id}`)).data);
+                newUsersAtTablePictures[i] = profilePicture;
+                newProfilePictureCollection[newTableUsers[i].id] = profilePicture;
+              }
+            } else {
+              tableChange = true;
+              newUsersAtTablePictures[i] = profilePictureCollection[newTableUsers[i].id];
+            }
+          }
+        }
+
+        if(tableChange && !collectionChange) {
+          setUsersAtTablePictures(newUsersAtTablePictures);
+        } else {
+          setProfilePictureCollection(newProfilePictureCollection);
+          setUsersAtTablePictures(newUsersAtTablePictures);
+        }
+
         setLobbyUsers(fetchedLobby.usersInLobby);
-        setUsersAtTable([fetchedLobby.userTop, fetchedLobby.userLeft, fetchedLobby.userBottom, fetchedLobby.userRight])
+        setUsersAtTable(newTableUsers)
         return fetchedLobby;
 
       } catch (error) {
@@ -207,7 +208,7 @@ const LobbyPage = () => {
       }
     }
 
-    fetchAndSetLobbyUsersAndUsersAtTable().then(fetchedLobby => console.log({fetchedLobby}));
+    fetchAndSetLobbyUsersAndUsersAtTableAndAvatarsOfTableUsers().then(fetchedLobby => console.log({fetchedLobby}));
   }, [lobbyFetchSwitch]);
 
 

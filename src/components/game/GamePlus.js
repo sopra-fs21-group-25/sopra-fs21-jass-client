@@ -260,7 +260,7 @@ const GamePlus = props => {
         break;
       }
     }
-    if(cardsPlayed.every(c => c == null) || !cardsPlayed.every(c => c == null)) {
+    if(cardsPlayed.every(c => c == null) || cardsPlayed.every(c => c != null)) {
       return i;
     }
     // at least one card and not all 4 cards have been played at this point,
@@ -490,7 +490,7 @@ const GamePlus = props => {
                         </div>
                         <div>
                           <img
-                            style={{background: 'rgba(240,240,240,0.8)'}}
+                            style={{background: 'rgba(240,240,240,0.8)', border: '1px solid black'}}
                             className={'user-avatar-style'}
                             src={currentIngameMode.value}
                             alt={questionmark}

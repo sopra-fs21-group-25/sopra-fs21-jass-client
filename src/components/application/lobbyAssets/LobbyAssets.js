@@ -1,8 +1,6 @@
-import styled from "styled-components";
 import React, {useState} from 'react';
-import {Button} from "../../../views/design/Button";
 import {api} from "../../../helpers/api";
-import {GlowButton, IconicInput} from "../../../views/design/ElegantAssets";
+import {IconicInput} from "../../../views/design/ElegantAssets";
 import './lobbyAssets.scss';
 
 
