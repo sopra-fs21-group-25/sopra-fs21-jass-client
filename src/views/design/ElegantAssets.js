@@ -83,6 +83,7 @@ export const IconicInput = props => {
           onChange={props.onChange}
           style={props.style}
           ref={inputRef}
+          value={props.value || props.value === '' ? props.value : undefined}
       />
     </div>
   );

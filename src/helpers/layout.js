@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import background from '../views/images/interfaceImages/woodWall.png';
+import background from '../views/images/interfaceImages/woodWall.jpg';
 import restaurant from '../views/images/interfaceImages/resti.jpg';
 import register from '../views/images/interfaceImages/register2.png';
 import jassboard from "../views/images/interfaceImages/jasstafel.svg";
@@ -33,10 +33,10 @@ export const BackgroundContainer = styled('div')({
   alignItems: 'center',
   justifyContent: 'center',
   position: 'fixed',
-  width: '100%',
-  height: '100%',
-  backgroundImage: `url(${background})`,
-  backgroundSize: 'cover'
+  width: '100vw',
+  height: '100vh',
+  background: `url(${background}) no-repeat center center fixed`,
+  backgroundSize: '100% 100%',
 });
 
 export const BackgroundContainerLogin = styled('div')({

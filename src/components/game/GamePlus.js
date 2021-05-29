@@ -12,6 +12,7 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import DialogActions from '@material-ui/core/DialogActions';
 import Button from '@material-ui/core/Button';
+import './gameAssets/gameStyles.scss';
 
 import acorn from "../../views/images/icons/acorn.png";
 import rose from "../../views/images/icons/rose.png";
@@ -65,10 +66,11 @@ const GamePlus = props => {
     hasTrickStarted,
     idOfRoundStartingPlayer,
     cardsOfPlayer,
-    currentIngameMode
+    currentIngameMode,
+    playerUsernames,
+    playerCardsAmount
   }, setGameState] = useState({...props.initialGameState, currentIngameMode: {text: 'Not decided yet', value: questionmark}, pointsTeam0_2: 0, pointsTeam1_3: 0});
 
-/*  const [currentIngameMode, setCurrentIngameMode] = useState({text: 'Not decided yet', value: questionmark});*/
   const [startOfRound, setStartOfRound] = useState(false);
 
   const [showScoreDialog, setShowScoreDialog] = useState(false); 
@@ -156,7 +158,6 @@ const GamePlus = props => {
         destination: `/app/games/${gameId}/shove/notify/${partnerId}`,
         body: JSON.stringify(ingameMode.ingameMode)
       });
-      setShovingState({canShove: false, gotShoved: false});
     } else {
       if(ingameMode.ingameMode === 'SLALOM') {
         setSlalomTrigger(true);
@@ -165,6 +166,7 @@ const GamePlus = props => {
       }
     }
     setStartOfRound(false);
+    setShovingState({canShove: false, gotShoved: false});
   }
 
   const handleDoShove = () => {
@@ -250,6 +252,32 @@ const GamePlus = props => {
     }
   }
 
+  const getCurrentlyActingPlayerIndex = () => {
+    let i=0;
+    for(i; i<4; i++) {
+      if(playerStartsTrick[i]) {
+        break;
+      }
+    }
+    if(cardsPlayed.every(c => c == null) || !cardsPlayed.every(c => c == null)) {
+      return i;
+    }
+    // at least one card and not all 4 cards have been played at this point,
+    // i.e. the variable i must store the player's index who played the first
+    // card this trick. So we set j = i, set i to the next index and then we
+    // check until we find the first player who has not yet played a card
+    const j = i;
+    i = (i+1)%4;
+    for(i; i !== j; i = (i+1)%4) {
+      if(cardsPlayed[i] == null) {
+        return i;
+      }
+    }
+
+    // something went wrong
+    return -1;
+  }
+
   const synchronizeMyGameState = newState => {
     console.log({newStateInSynchronize: newState})
     // updates game state
@@ -282,6 +310,7 @@ const GamePlus = props => {
       setShowScoreDialog(false);
     }
   }
+
 
   /*
 ---------------------------------------------------------------------------------------------------------------------
@@ -438,15 +467,26 @@ const GamePlus = props => {
           </Label>
         </ScoreContainer>
         {(myIndex != null && cardsOfPlayer && cardsPlayed) ?
-            <InitDistributionPlus
-                cardsInHands={cardsOfPlayer}
-                cardsPlayed={cardsPlayed}
-                currentIngameMode={currentIngameMode}
-                playerStartsTrick={playerStartsTrick}
-                updateGameState={(c, m) => updateGameState(c, m)}
-                myIndex={myIndex}
-                trickToPlay={trickToPlay}
-            />
+              <div className={'init-container'}>
+                <InitDistributionPlus
+                    cardsInHands={cardsOfPlayer}
+                    cardsPlayed={cardsPlayed}
+                    currentIngameMode={currentIngameMode}
+                    playerStartsTrick={playerStartsTrick}
+                    updateGameState={(c, m) => updateGameState(c, m)}
+                    myIndex={myIndex}
+                    trickToPlay={trickToPlay}
+                    amountOfCardsHeldByPlayers={playerCardsAmount}
+                    playerIds={[
+                      props.initialGameState.player0id,
+                      props.initialGameState.player1id,
+                      props.initialGameState.player2id,
+                      props.initialGameState.player3id
+                    ]}
+                    playerUsernames={playerUsernames}
+                    currentlyActingPlayerIndex={getCurrentlyActingPlayerIndex()}
+                />
+              </div>
             : <></>}
         <UserList onMountOpen={false}/>
       </BackgroundContainer>
