@@ -23,7 +23,7 @@ export const GroupChat = props => {
 
   useEffect(() => {
     const fetchAndSetMessageData = async () => {
-      const data = (await api.get(`/messages/lobby/${props.environmentId}`)).data;
+      const data = (await api.get(`/messages/${props.type}/${props.environmentId}`)).data;
       const receivedMessageData = data.length ? data.map(d => convertChatMessageDTOtoMessageDataObj(d)) : [];
       setMessageData(receivedMessageData);
     };
@@ -59,7 +59,7 @@ export const GroupChat = props => {
 
 
   return (
-      <div className={'chat-wrapper'}>
+      <div className={'chat-wrapper'} style={props.refactoredStyle ? props.refactoredStyle : {}}>
         <div className={'chat__inner-wrapper-root'}>
           <div className={'chat__inner-header'}>
             Stübli Chat
@@ -77,7 +77,7 @@ export const GroupChat = props => {
                     const header = index === 0 || (index > 0 && m.senderUsername !== array[index-1].senderUsername) ? m.senderUsername : '';
                     return (
                         <Message model={messageModel} key={index}>
-                          <Message.Header sender={messageModel.sender}/>
+                          <Message.Header sender={header}/>
                           <Message.Footer sentTime={messageModel.sentTime}/>
                         </Message>
                     )

@@ -28,6 +28,7 @@ import InitDistributionPlus from "../cards/InitDistributionPlus";
 import {Spinner} from "../../views/design/Spinner";
 import {DialogContent} from "@material-ui/core";
 import {UserList} from "../application/applicationAssets/UserList";
+import {GroupChat} from "../application/lobbyAssets/GroupChat";
 
 
 const CurrentModeContainer = styled(BaseContainer)`
@@ -69,7 +70,7 @@ const GamePlus = props => {
     currentIngameMode,
     playerUsernames,
     playerCardsAmount
-  }, setGameState] = useState({...props.initialGameState, currentIngameMode: {text: 'Not decided yet', value: questionmark}, pointsTeam0_2: 0, pointsTeam1_3: 0});
+  }, setGameState] = useState({...props.initialGameState, currentIngameMode: {text: 'not decided yet', value: questionmark}, pointsTeam0_2: 0, pointsTeam1_3: 0});
 
   const [startOfRound, setStartOfRound] = useState(false);
 
@@ -285,7 +286,7 @@ const GamePlus = props => {
       ...newState,
       currentIngameMode: newState.currentIngameMode
           ? ingameModes.filter(mode => mode.ingameMode === newState.currentIngameMode)[0]
-          : {text: 'Not decided yet', value: questionmark}, 
+          : {text: 'not decided yet', value: questionmark},
       pointsTeam0_2: newState.pointsTeam0_2, 
       pointsTeam1_3: newState.pointsTeam1_3
     });
@@ -297,7 +298,7 @@ const GamePlus = props => {
         setEndGameText(`${scoreText[myIndex % 2]} won the game!`); 
       } else if  (newState.pointsTeam1_3 >= newState.pointsToWin){
         setGameEnded(true);
-        setEndGameText(`${scoreText[myIndex % 2]} won the game!`); 
+        setEndGameText(`${scoreText[1 - myIndex % 2]} won the game!`);
       } else {
         setStartOfRound(true);
         setShowScoreDialog(true);
@@ -452,20 +453,6 @@ const GamePlus = props => {
            </ListItem>
          </List>
         </Dialog>
-        <CurrentModeContainer>
-          <Label style={{backgroundColor: "white", textAlign: "center"}}>
-            Current Mode:
-            <div><img src={currentIngameMode.value} height={'30px'} width={'40px'} margin={'5px'}/></div>
-            <input style={{textAlign: "center"}} disabled={true} type={"text"} value={currentIngameMode.text} />
-          </Label>
-        </CurrentModeContainer>
-        <ScoreContainer style={{position: "absolute", top: "3em", right: "3em"}} visible={!showScoreDialog && !startOfRound}>
-          <Label style={{backgroundColor: "white", textAlign: "center"}}>
-            <div>Team points</div>
-            <input style={{textAlign: "center"}} disabled={true} type={"text"} value={`${scoreText[myIndex % 2]}: ${pointsTeam0_2}`} />
-            <input style={{textAlign: "center"}} disabled={true} type={"text"} value={`${scoreText[1 - myIndex % 2]}: ${pointsTeam1_3}`} />
-          </Label>
-        </ScoreContainer>
         {(myIndex != null && cardsOfPlayer && cardsPlayed) ?
               <div className={'init-container'}>
                 <InitDistributionPlus
@@ -486,6 +473,59 @@ const GamePlus = props => {
                     playerUsernames={playerUsernames}
                     currentlyActingPlayerIndex={getCurrentlyActingPlayerIndex()}
                 />
+                <GroupChat
+                    refactoredStyle={{gridRow: 1}}
+                    type={'game'}
+                    environmentId={gameId}
+                    client={stompClient}
+                    myId={myId}
+                    myUsername={playerUsernames[myIndex]}
+                />
+                <div className={'game-information-wrapper'}>
+                  <div className={'game-information__inner-wrapper-root'}>
+                    <div className={'game-information__current-mode-header'}>
+                      <div className={'current-mode__title-wrapper'}>
+                        <div>
+                          current mode:
+                        </div>
+                        <div>
+                          <img
+                            style={{background: 'rgba(240,240,240,0.8)'}}
+                            className={'user-avatar-style'}
+                            src={currentIngameMode.value}
+                            alt={questionmark}
+                          />
+                        </div>
+                      </div>
+                      <div className={'current-mode__mode-declaration'}>
+                        {currentIngameMode.text}
+                      </div>
+                    </div>
+                    <div className={'game-information__score-body'}>
+                     <div className={'score-title'}>
+                       team points
+                     </div>
+                      <div className={'team-score-wrapper'}>
+                        <div className={'team-score-column'}>
+                          <div className={'team-declaration-title'}>
+                            your team
+                          </div>
+                          <div className={'team-points-entry'}>
+                            {myIndex % 2 === 0 ? pointsTeam0_2 : pointsTeam1_3}
+                          </div>
+                        </div>
+                        <div className={'team-score-column'}>
+                          <div className={'team-declaration-title'}>
+                            opponent
+                          </div>
+                          <div className={'team-points-entry'}>
+                            {myIndex % 2 === 1 ? pointsTeam0_2 : pointsTeam1_3}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             : <></>}
         <UserList onMountOpen={false}/>

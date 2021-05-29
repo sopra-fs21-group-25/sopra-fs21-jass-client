@@ -290,6 +290,7 @@ const LobbyPage = () => {
             />
           </div>
           <GroupChat
+            type={'lobby'}
             environmentId={thisLobby.id}
             client={stompClient}
             myId={myId}
