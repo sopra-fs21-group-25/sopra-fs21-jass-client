@@ -129,7 +129,7 @@ const ItemTextContainer = styled.div`
     text-align: center;
   }
   & > p {
-    font-size: 1.2rem;
+    font-size: min(1.8vh, 0.8vw, 1rem);
     font-weight: 400;
   }
   & > footer {
